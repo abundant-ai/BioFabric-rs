@@ -5,13 +5,10 @@
 //! For example, a purple node with both COVERED and INDUCED_GRAPH1 edges
 //! belongs to group `(P:P/pBp)`.
 //!
-//! The Java implementation produces 40-76 distinct groups depending on the
+//! The reference implementation produces 40-76 distinct groups depending on the
 //! network. These groups drive both the layout ordering and the color
 //! assignments in the visualization.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NodeGroupMap`
 
 use super::merge::MergedNetwork;
 use super::types::{EdgeType, NodeColor};
@@ -19,7 +16,7 @@ use crate::model::NodeId;
 use crate::worker::ProgressMonitor;
 use std::collections::{BTreeSet, HashMap};
 
-// Java ordering + color map (NodeGroupMap.nodeGroupAnnots / nodeGroupAnnotsPerfectNG)
+// Group ordering and color map
 const NODE_GROUP_ANNOTS: &[(&str, &str)] = &[
     ("(P:0)", "GrayBlue"),
     ("(P:P)", "Orange"),
@@ -148,9 +145,6 @@ const NODE_GROUP_ANNOTS_PERFECT: &[(&str, &str)] = &[
 /// perfect alignment, each base group can be split into "correct" and
 /// "incorrect" subgroups, yielding ~76 groups.
 ///
-/// ## References
-///
-/// - Java: `NodeGroupMap.PerfectNGMode`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum PerfectNGMode {
     /// No perfect alignment — use base groups only (~40 groups).
@@ -166,9 +160,6 @@ pub enum PerfectNGMode {
 
 /// Jaccard similarity threshold for [`PerfectNGMode::JaccardSimilarity`].
 ///
-/// ## References
-///
-/// - Java: `NodeGroupMap.JACCARD_THRESHOLD` (0.75)
 pub const DEFAULT_JACCARD_THRESHOLD: f64 = 0.75;
 
 /// Tag identifying a node group.
@@ -208,7 +199,7 @@ pub struct NodeGroup {
     pub edge_types: Vec<EdgeType>,
     /// Member node IDs.
     pub members: Vec<NodeId>,
-    /// Annotation color name (Java group color map).
+    /// Annotation color name.
     pub annot_color: String,
 }
 

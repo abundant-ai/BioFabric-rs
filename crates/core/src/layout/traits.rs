@@ -40,9 +40,6 @@ pub type LayoutResult<T> = Result<T, LayoutError>;
 /// network — a critical distinction that affects the default edge comparator,
 /// the alignment edge layouts, and the resulting annotation structure.
 ///
-/// ## References
-///
-/// - Java: `BioFabricNetwork.LayoutMode` (`PER_NODE_MODE`, `PER_NETWORK_MODE`)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum LayoutMode {
     /// Link groups are formed per-node: each node's incident edges are
@@ -99,9 +96,6 @@ pub struct LayoutParams {
     /// incident set are grouped; in `PerNetwork` mode, edges are globally
     /// grouped across the whole network.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.LinkGrouping`
     pub link_groups: Option<Vec<String>>,
 
     /// Whether the HierDAG layout should point up (leaves at top).
@@ -112,9 +106,6 @@ pub struct LayoutParams {
     ///
     /// Used by [`HierDAGLayout`](crate::layout::HierDAGLayout).
     ///
-    /// ## References
-    ///
-    /// - Java: `HierDAGLayout.pointUp_`
     pub point_up: Option<bool>,
 }
 
@@ -194,7 +185,7 @@ pub trait EdgeLayout {
 /// Trait for full network layout algorithms.
 ///
 /// This is a convenience interface that returns the complete [`NetworkLayout`]
-/// in one call, matching the Java API style. For now, implementations are
+/// in one call. For now, implementations are
 /// expected to be stubs until the two-phase pipeline is wired up.
 pub trait NetworkLayoutAlgorithm {
     /// Compute the full layout for a network.

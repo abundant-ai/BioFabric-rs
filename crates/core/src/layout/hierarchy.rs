@@ -4,21 +4,8 @@
 //! the same level are placed in adjacent rows, and level boundaries are
 //! marked with annotations.
 //!
-//! ## Prerequisites
-//!
 //! The network must be a DAG (no cycles). Use [`crate::analysis::cycle`] to
 //! verify before applying this layout.
-//!
-//! ## Algorithm
-//!
-//! 1. Build a directed adjacency map from all non-shadow links
-//! 2. Extract roots (sink nodes — nodes with no outgoing targets)
-//! 3. Iteratively find candidates whose all targets are already placed
-//! 4. Within each batch, order by the SourcedNode comparator (Java parity)
-//!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.layouts.HierDAGLayout`
 
 use super::build_data::LayoutBuildData;
 use super::traits::{EdgeLayout, LayoutError, LayoutParams, LayoutResult, NodeLayout};
@@ -61,12 +48,6 @@ impl NodeLayout for HierDAGLayout {
 
 impl HierDAGLayout {
     /// Install node annotations for the DAG hierarchy levels.
-    ///
-    /// This re-derives the batch/level boundaries from the network using the
-    /// same algorithm as `layout_nodes`, then creates "Level 0", "Level 1", ...
-    /// annotations spanning the corresponding row ranges.
-    ///
-    /// Java: `HierDAGLayout.installNodeAnnotations()`
     pub fn install_node_annotations(
         network: &Network,
         params: &LayoutParams,
@@ -75,11 +56,7 @@ impl HierDAGLayout {
         todo!()
     }
 
-    /// Extract root nodes (sink nodes in the l2s graph — nodes with empty
-    /// target sets). Ordered by in-degree descending, with ties broken by
-    /// ascending lexicographic order.
-    ///
-    /// Java: `HierDAGLayout.extractRoots()`
+    /// Extract root nodes from the graph.
     fn extract_roots(
         l2s: &HashMap<NodeId, HashSet<NodeId>>,
         _in_degs: &HashMap<NodeId, usize>,
@@ -87,10 +64,7 @@ impl HierDAGLayout {
         todo!()
     }
 
-    /// Find the next batch of candidate nodes whose ALL targets in l2s
-    /// have already been placed. Order them using the SourcedNode comparator.
-    ///
-    /// Java: `HierDAGLayout.findNextCandidates()`
+    /// Find the next batch of candidate nodes ready to be placed.
     fn find_next_candidates(
         l2s: &HashMap<NodeId, HashSet<NodeId>>,
         in_degs: &HashMap<NodeId, usize>,
@@ -102,16 +76,6 @@ impl HierDAGLayout {
 }
 
 /// Comparator node for the HierDAG layout's candidate ordering.
-///
-/// Ported from Java: `GraphSearcher.SourcedNode`
-///
-/// Ordering (natural compareTo):
-/// 1. Compare sorted target row lists element-by-element (prefer lower rows)
-/// 2. More targets = greater (hisSize - mySize)
-/// 3. Higher in-degree = greater
-/// 4. Lexicographic node name
-///
-/// Used with reverse order: largest (most preferred) nodes come first.
 #[derive(Debug, Clone)]
 struct SourcedNode {
     node: NodeId,
@@ -126,20 +90,7 @@ impl SourcedNode {
         name_to_row: &HashMap<NodeId, usize>,
         l2s: &HashMap<NodeId, HashSet<NodeId>>,
     ) -> Self {
-        // Get the sorted list of row numbers of this node's targets in l2s
-        let targets = l2s.get(&node).cloned().unwrap_or_default();
-        let mut my_order: BTreeSet<usize> = BTreeSet::new();
-        for target in &targets {
-            if let Some(&row) = name_to_row.get(target) {
-                my_order.insert(row);
-            }
-        }
-
-        Self {
-            my_in: in_degs.get(&node).copied().unwrap_or(0),
-            source_order_list: my_order.into_iter().collect(),
-            node,
-        }
+        todo!()
     }
 }
 
@@ -164,13 +115,6 @@ impl Ord for SourcedNode {
 }
 
 /// Edge layout variant for hierarchical DAG networks.
-///
-/// Orders edges to reflect the hierarchical structure, placing
-/// intra-level edges before inter-level edges.
-///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.layouts.HierDAGLayout.EdgeLayout` (inner class)
 #[derive(Debug, Clone, Default)]
 pub struct HierDAGEdgeLayout;
 

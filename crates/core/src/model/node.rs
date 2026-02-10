@@ -10,7 +10,7 @@ use std::fmt;
 
 /// Unique identifier for a node.
 ///
-/// This is a wrapper around a string name. In the Java implementation,
+/// This is a wrapper around a string name. In the original implementation,
 /// nodes have both a numeric ID and a display name. For simplicity,
 /// we use the name as the ID directly.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -48,7 +48,7 @@ impl From<String> for NodeId {
 
 /// A node in the BioFabric network.
 ///
-/// Corresponds to `FabricNode` in the Java implementation.
+/// A node in the network with optional attributes.
 ///
 /// ## Attributes
 ///
@@ -59,10 +59,6 @@ impl From<String> for NodeId {
 /// - [`SetLayout`](crate::layout::SetLayout) — groups by set membership attribute
 /// - [`ControlTopLayout`](crate::layout::ControlTopLayout) — identifies "control" nodes by attribute
 ///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.model.FabricNode`
-/// - Java: `org.systemsbiology.biofabric.api.model.NetNode`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
     /// Unique identifier for this node.
@@ -73,9 +69,6 @@ pub struct Node {
     /// These drive attribute-dependent layouts (cluster, set, control-top).
     /// Common keys include `"cluster"`, `"set"`, `"type"`, `"is_control"`.
     ///
-    /// ## References
-    ///
-    /// - Java: `AttributeLoader` populates these from column-delimited files
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub attributes: HashMap<String, String>,
 }

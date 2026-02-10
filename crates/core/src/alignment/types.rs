@@ -1,9 +1,5 @@
 //! Core types for network alignment.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignment`
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignmentBuildData`
 
 use crate::model::NodeId;
 use serde::{Deserialize, Serialize};
@@ -14,9 +10,6 @@ use std::fmt;
 /// The smaller network is always G1 and the larger is G2. This affects
 /// the merging direction and how unaligned nodes are classified.
 ///
-/// ## References
-///
-/// - Java: `NetworkAlignment.GraphType`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum GraphType {
     /// The smaller network (G1). Unaligned G1 nodes become Blue.
@@ -63,9 +56,6 @@ impl fmt::Display for NodeColor {
 /// The short code uses three characters: `source-Color-target`, where
 /// lowercase = unaligned and uppercase/P = aligned.
 ///
-/// ## References
-///
-/// - Java: `NetworkAlignment.COVERED`, `INDUCED_GRAPH1`, etc.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum EdgeType {
     /// Edge present in both networks (Purple--Purple, exists in G1 and G2).

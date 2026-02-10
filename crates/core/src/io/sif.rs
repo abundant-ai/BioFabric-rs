@@ -18,7 +18,6 @@
 //!
 //! ## References
 //!
-//! - Java implementation: `org.systemsbiology.biofabric.io.SIFImportLoader`
 //! - Cytoscape SIF format: <https://cytoscape.org/manual/Cytoscape3_10_0Manual.pdf>
 
 use super::{ImportStats, ParseError};

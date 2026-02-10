@@ -14,10 +14,6 @@
 //! all nodes in this annotation group"). For interactive usage, selection is
 //! set by mouse clicks and drag-selects.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.event.SelectionChangeEvent`
-//! - Java: `org.systemsbiology.biofabric.ui.display.BioFabricPanel` (selection tracking)
 
 use crate::layout::result::NetworkLayout;
 use crate::model::NodeId;

@@ -8,18 +8,6 @@
 //!
 //! - **BelongsTo** - Members belong to sets (edges go member -> set)
 //! - **Contains** - Sets contain members (edges go set -> member)
-//!
-//! ## Algorithm
-//!
-//! 1. Identify set nodes and member nodes based on relation semantics
-//! 2. Order sets by cardinality (number of members), then name
-//! 3. For each member, compute a Gray-code-based sort key from its
-//!    set membership bitvector
-//! 4. Order members by (degree DESC, gray code DESC, name ASC)
-//!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.layouts.SetLayout`
 
 use super::build_data::LayoutBuildData;
 use super::default::DefaultEdgeLayout;
@@ -78,10 +66,6 @@ impl SetLayout {
     }
 
     /// Extract set→members mapping from the network.
-    ///
-    /// Returns `(elems_per_set, sets_per_elem)` where:
-    /// - `elems_per_set`: set node → set of member nodes
-    /// - `sets_per_elem`: member node → set of set nodes
     fn extract_sets(
         &self,
         network: &Network,
@@ -92,23 +76,12 @@ impl SetLayout {
         todo!()
     }
 
-    /// Order sets by cardinality descending, then name ascending.
-    ///
-    /// Matches Java `SetLayout.doNodeLayout()`:
-    /// - Groups sets into a TreeMap keyed by -cardinality (reverse order)
-    /// - Within each group, sets are in TreeSet (name-ascending) order
+    /// Order the set nodes.
     fn order_sets(elems_per_set: &HashMap<NodeId, BTreeSet<NodeId>>) -> Vec<NodeId> {
         todo!()
     }
 
-    /// Order members using Gray-code-based sort key.
-    ///
-    /// For each member, compute a bitvector based on which sets (from
-    /// `set_list`) it belongs to. Convert bitvector to binary number,
-    /// then to Gray code. Sort by (degree DESC, gray DESC, name ASC).
-    ///
-    /// Matches Java `SetLayout.nodeGraySetWithSourceFromMap()` and
-    /// `SourcedNodeGray.compareTo()`.
+    /// Order the member nodes.
     fn order_members(
         set_list: &[NodeId],
         sets_per_elem: &HashMap<NodeId, BTreeSet<NodeId>>,
@@ -118,16 +91,6 @@ impl SetLayout {
     }
 
     /// Run the complete set layout pipeline: node order, edge layout, and annotations.
-    ///
-    /// This is the full pipeline that:
-    /// 1. Computes the node order (sets first, then members)
-    /// 2. Marks all links as directed (set membership has inherent direction)
-    /// 3. Runs the default edge layout
-    /// 4. Builds node, link, and shadow link annotations
-    ///
-    /// ## References
-    ///
-    /// - Java: `SetLayout.doNodeLayout()` + subsequent annotation installation
     pub fn full_layout(
         &self,
         network: &Network,

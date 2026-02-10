@@ -2,9 +2,6 @@
 //!
 //! This module provides fundamental graph traversal and analysis algorithms.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.analysis.GraphSearcher`
 
 use crate::model::{Network, NodeId};
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -93,9 +90,6 @@ pub fn highest_degree_node(network: &Network) -> Option<NodeId> {
 /// Vector of `(NodeId, degree)` pairs sorted by degree descending,
 /// then by node name ascending.
 ///
-/// ## References
-///
-/// - Java: `GraphSearcher.nodeDegreeOrder()`
 pub fn nodes_by_degree(network: &Network) -> Vec<(NodeId, usize)> {
         todo!()
     }
@@ -119,9 +113,6 @@ pub fn nodes_by_degree(network: &Network) -> Vec<(NodeId, usize)> {
 /// are grouped together. The returned order still lists every node once, but
 /// nodes within a level are sorted by degree descending.
 ///
-/// ## References
-///
-/// - Java: `GraphSearcher.topoSort()`
 pub fn topological_sort(network: &Network, compress: bool) -> Option<Vec<NodeId>> {
         todo!()
     }
@@ -131,9 +122,6 @@ pub fn topological_sort(network: &Network, compress: bool) -> Option<Vec<NodeId>
 /// Returns `None` if the network contains a cycle. Useful for
 /// [`HierDAGLayout`](crate::layout::HierDAGLayout) level assignment.
 ///
-/// ## References
-///
-/// - Java: `HierDAGLayout` level computation
 pub fn dag_levels(network: &Network) -> Option<HashMap<NodeId, usize>> {
         todo!()
     }

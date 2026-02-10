@@ -1,12 +1,9 @@
 //! Jaccard similarity for alignment scoring.
 //!
 //! Computes the average Jaccard similarity of aligned node neighborhoods
-//! in the merged network. This implements the JS metric from the Java
+//! in the merged network. This implements the JS metric from the reference
 //! `JaccardSimilarity` class.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.JaccardSimilarity`
 
 use crate::alignment::merge::MergedNetwork;
 use crate::alignment::types::NodeColor;
@@ -29,16 +26,14 @@ impl JaccardSimilarity {
     /// of its neighborhood in the merged network. The final score is the average
     /// across all aligned nodes.
     ///
-    /// This implements the Java `JaccardSimilarity.jaccardSimilarityScore()`.
     pub fn average_score(merged: &MergedNetwork) -> f64 {
         todo!()
     }
 
-    /// Compute the Java-equivalent Jaccard similarity score using original graphs
+    /// Compute the Jaccard similarity score using original graphs
     /// and alignment maps.
     ///
-    /// This matches `AlignmentPlugin JaccardSimilarity.calcScore()`:
-    /// average over all nodes in G1 using the case-based rules that compare
+    /// Average over all nodes in G1 using the case-based rules that compare
     /// neighbors in G1 (small) or G2 (large) depending on main/perfect alignment.
     pub fn average_score_with_alignments(
         g1: &Network,

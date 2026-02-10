@@ -18,12 +18,9 @@ use std::path::Path;
 // Constants
 // ===========================================================================
 
-/// Java default for node lighter level.
-const JAVA_DEFAULT_NODE_LIGHTER: f64 = 0.43;
-/// Java default for link darker level.
-const JAVA_DEFAULT_LINK_DARKER: f64 = 0.43;
-/// Java default for min drain zone.
-const JAVA_DEFAULT_MIN_DRAIN_ZONE: i32 = 1;
+const DEFAULT_NODE_LIGHTER: f64 = 0.43;
+const DEFAULT_LINK_DARKER: f64 = 0.43;
+const DEFAULT_MIN_DRAIN_ZONE: i32 = 1;
 
 /// Indices of gene colors that are NOT brightened.
 const NO_BRIGHTEN_INDICES: [usize; 3] = [16, 24, 28];

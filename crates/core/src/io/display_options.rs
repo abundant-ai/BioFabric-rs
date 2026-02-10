@@ -4,10 +4,6 @@
 //! It is consumed by render extraction, image export, and (eventually)
 //! the interactive UI.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.ui.FabricDisplayOptions`
-//! - Java: `org.systemsbiology.biofabric.ui.FabricDisplayOptionsManager`
 
 use serde::{Deserialize, Serialize};
 
@@ -16,10 +12,6 @@ use serde::{Deserialize, Serialize};
 /// All fields have sensible defaults for a first render. Toggle individual
 /// fields to change the visualization without recomputing the layout.
 ///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.ui.FabricDisplayOptions`
-/// - Java: `org.systemsbiology.biofabric.ui.FabricDisplayOptionsManager`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DisplayOptions {
     // =====================================================================
@@ -96,9 +88,6 @@ pub struct DisplayOptions {
     /// is tinted with the node's color at low opacity, making it easier
     /// to visually follow a node across a wide layout.
     ///
-    /// ## References
-    ///
-    /// - Java: `FabricDisplayOptions.DO_NODE_ZONE_COLORING`
     pub node_zone_coloring: bool,
 
     /// Selection highlight color.
@@ -110,9 +99,6 @@ pub struct DisplayOptions {
 
     /// Line width for node horizontal lines (in screen pixels).
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricPanel.NODE_WIDTH`
     pub node_line_width: f64,
 
     /// Line width for link vertical lines (in screen pixels).
@@ -127,13 +113,10 @@ pub struct DisplayOptions {
 
     /// Whether to show the minimap overview panel.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricOverview`
     pub show_overview: bool,
 
     // =====================================================================
-    // BIF-specific display options (match Java FabricDisplayOptions)
+    // BIF-specific display options
     // =====================================================================
 
     /// Node color lighter level (controls brighter palette computation).
@@ -142,11 +125,7 @@ pub struct DisplayOptions {
     /// and is written as `nodeLight` attribute in `<displayOptions>` when
     /// non-default.
     ///
-    /// Default: 0.43 (matching Java `DEFAULT_NODE_LIGHTER_LEVEL_`)
-    ///
-    /// ## References
-    ///
-    /// - Java: `FabricDisplayOptions.nodeLighterLevel_`
+    /// Default: 0.43
     pub node_lighter_level: f64,
 
     /// Link color darker level (controls darker palette computation).
@@ -155,11 +134,7 @@ pub struct DisplayOptions {
     /// and is written as `linkDark` attribute in `<displayOptions>` when
     /// non-default.
     ///
-    /// Default: 0.43 (matching Java `DEFAULT_LINK_DARKER_LEVEL_`)
-    ///
-    /// ## References
-    ///
-    /// - Java: `FabricDisplayOptions.linkDarkerLevel_`
+    /// Default: 0.43
     pub link_darker_level: f64,
 
     /// Minimum drain zone size.
@@ -167,11 +142,7 @@ pub struct DisplayOptions {
     /// Written as `minDrainZone` attribute in `<displayOptions>` when
     /// non-default.
     ///
-    /// Default: 1 (matching Java `DEFAULT_MIN_DRAIN_ZONE_`)
-    ///
-    /// ## References
-    ///
-    /// - Java: `FabricDisplayOptions.minDrainZone_`
+    /// Default: 1
     pub min_drain_zone: i32,
 
     /// Whether `shadows` was explicitly written in the BIF XML.

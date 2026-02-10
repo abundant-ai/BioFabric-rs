@@ -27,11 +27,6 @@ pub struct AdjacencyIndex {
 /// require. They are populated either by the I/O parsers (which can detect
 /// these properties during load) or lazily on first access.
 ///
-/// ## References
-///
-/// - Java: `BioFabricNetwork.BuildData` carries `isDirected`, `isBipartite`
-/// - Java: `HierDAGLayout` checks `isDAG`
-/// - Java: `SetLayout` checks `isBipartite`
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct NetworkMetadata {
     /// Whether the network has at least one directed edge.
@@ -65,7 +60,7 @@ pub struct NetworkMetadata {
 /// - A list of links (edges)
 /// - Optional: isolated nodes (nodes with no edges)
 ///
-/// Corresponds to `BioFabricNetwork` in the Java implementation,
+/// Represents a network graph,
 /// but contains only the graph data, not the layout information.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Network {

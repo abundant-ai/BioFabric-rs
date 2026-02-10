@@ -1,31 +1,7 @@
 //! Alignment-specific layout modes.
 //!
 //! Three layout modes are provided for visualizing network alignments:
-//!
-//! ## GROUP Layout
-//!
-//! Nodes are ordered by their [`NodeGroupMap`] classification. Within each
-//! group, nodes are ordered by BFS. Group boundaries are marked with
-//! color-coded annotations.
-//!
-//! ## ORPHAN Layout
-//!
-//! Filters the merged network to show only "orphan" edges (unaligned edges)
-//! plus sufficient context. Uses the default BFS layout on the filtered
-//! subgraph.
-//!
-//! ## CYCLE Layout
-//!
-//! Orders nodes to highlight alignment cycles and paths. Misaligned nodes
-//! forming a cycle are placed in adjacent rows with alternating-color
-//! annotations.
-//!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignmentLayout`
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.AlignCycleLayout`
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignmentEdgeLayout`
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.AlignCycleEdgeLayout`
+//! GROUP, ORPHAN, and CYCLE.
 
 use super::groups::NodeGroupMap;
 use super::merge::MergedNetwork;
@@ -78,7 +54,7 @@ impl AlignmentNodeLayout {
         }
     }
 
-    /// Build node group annotations in Java's canonical group order.
+    /// Build node group annotations in canonical group order.
     pub fn build_group_node_annotations(groups: &NodeGroupMap) -> AnnotationSet {
         todo!()
     }
@@ -146,29 +122,7 @@ impl AlignmentNodeLayout {
 
 /// Alignment-aware edge layout.
 ///
-/// Orders edges to reflect the alignment structure. In GROUP mode, edges
-/// are ordered by edge type priority. In CYCLE mode, edges are ordered
-/// to visually follow the cycle structure with per-cycle/path annotations.
-///
-/// ## Modes
-///
-/// - **GROUP**: Sets link group order to the 7 edge types. Within each type,
-///   uses the default edge ordering. Link annotation colors are `null` (grayscale)
-///   because node annotations already provide color.
-///
-/// - **CYCLE**: Extends the default edge layout with cycle-aware link annotations.
-///   For each detected cycle/path, creates an annotation spanning its edges,
-///   alternating Orange/Green. Correctly-aligned singletons are not annotated.
-///   Link annotation colors for edge types are fixed: Purple (G12), PowderBlue
-///   (G1A), Pink (G2A).
-///
-/// - **ORPHAN**: Uses the default edge layout on the filtered subgraph.
-///
-/// ## References
-///
-/// - Java: `NetworkAlignmentEdgeLayout` (GROUP mode)
-/// - Java: `AlignCycleEdgeLayout` (CYCLE mode)
-/// - Java: `DefaultEdgeLayout` (ORPHAN mode, base class)
+/// Orders edges to reflect the alignment structure.
 pub struct AlignmentEdgeLayout {
     /// Which layout mode to use.
     pub mode: AlignmentLayoutMode,
@@ -181,26 +135,11 @@ impl AlignmentEdgeLayout {
     }
 
     /// Build the default link group order for alignment edge layouts.
-    ///
-    /// Corresponds to Java `AlignCycleEdgeLayout.preProcessEdges()` and
-    /// `NetworkAlignmentEdgeLayout.preProcessEdges()` which both set the
-    /// group order to the 7 edge type tags.
     pub fn alignment_link_group_order() -> Vec<String> {
         todo!()
     }
 
     /// Compute cycle-mode link annotations.
-    ///
-    /// Ported from `AlignCycleEdgeLayout.calcGroupLinkAnnotsCycle()`.
-    ///
-    /// Walks the placed links in column order. For each link, determines the
-    /// "zone node" (top node for regular links, bottom node for shadow links).
-    /// When the zone node changes and matches a cycle bound's start, a new
-    /// annotation region begins. When it matches the bound's end, the
-    /// annotation is finalized (with alternating Orange/Green colors).
-    ///
-    /// Correctly-aligned singletons (where `bound_start == bound_end` and
-    /// `is_correct`) are skipped.
     pub fn calc_cycle_link_annots(
         link_layout: &NetworkLayout,
         cycle_bounds: &[CycleBound],
@@ -212,12 +151,6 @@ impl AlignmentEdgeLayout {
     }
 
     /// Get the annotation color for an edge type in CYCLE mode.
-    ///
-    /// Ported from `AlignCycleEdgeLayout.getColor()`.
-    ///
-    /// - `"G12"` → Purple
-    /// - `"G1A"` → PowderBlue
-    /// - `"G2A"` → Pink
     pub fn cycle_edge_type_color(type_tag: &str) -> Option<&'static str> {
         todo!()
     }

@@ -4,9 +4,6 @@
 //! merged network where aligned nodes are combined and edges are classified
 //! by their alignment status.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignment.mergeNetworks()`
 
 use super::types::{EdgeType, MergedNodeId, NodeColor};
 use crate::io::align::AlignmentMap;
@@ -45,14 +42,9 @@ pub struct MergedNetwork {
     ///   `true` if the perfect alignment also does NOT align this G1 node
     ///   (i.e., `perfect_alignment[g1]` is `None`)
     ///
-    /// Red (G2-only) nodes are not tracked (the Java code doesn't track them
+    /// Red (G2-only) nodes are not tracked (correctness is not tracked for them
     /// either — correctness is only meaningful for G1 nodes).
     ///
-    /// ## References
-    ///
-    /// - Java: `NetworkAlignment.mergedToCorrectNC_`
-    /// - Java: `NetworkAlignment.createMergedNodes()` (line 277)
-    /// - Java: `NetworkAlignment.createUnmergedNodes()` (line 322)
     pub merged_to_correct: Option<HashMap<NodeId, bool>>,
 
     /// Number of nodes from G1.

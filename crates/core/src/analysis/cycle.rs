@@ -4,9 +4,6 @@
 //! This is needed by the [`HierDAGLayout`](crate::layout::HierDAGLayout)
 //! to verify that the input is a DAG.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.analysis.CycleFinder`
 
 use crate::model::{Network, NodeId};
 

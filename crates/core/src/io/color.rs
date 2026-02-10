@@ -3,10 +3,6 @@
 //! Assigns distinct colors to nodes, links, and annotations. The palette
 //! is designed to remain distinguishable even at high density.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.ui.FabricColorGenerator`
-//! - Java: `org.systemsbiology.biofabric.ui.NamedColor`
 
 use serde::{Deserialize, Serialize};
 
@@ -32,9 +28,7 @@ impl FabricColor {
 
     /// Create a color from HSB values (hue 0.0–1.0, saturation 0.0–1.0, brightness 0.0–1.0).
     ///
-    /// Mirrors Java's `Color.getHSBColor(h, s, b)`.
     pub fn from_hsb(h: f64, s: f64, b: f64) -> Self {
-        // Algorithm matches java.awt.Color.HSBtoRGB
         if s == 0.0 {
             let v = (b * 255.0 + 0.5) as u8;
             return Self::rgb(v, v, v);
@@ -96,10 +90,6 @@ pub struct NamedColor {
 /// [`ColorPalette::alignment_palette`] to create a palette suitable for
 /// alignment visualization.
 ///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.ui.FabricColorGenerator`
-/// - Java: `org.systemsbiology.biofabric.ui.NamedColor`
 #[derive(Debug, Clone)]
 pub struct ColorPalette {
     /// The base set of colors to cycle through.
@@ -109,8 +99,7 @@ pub struct ColorPalette {
 impl ColorPalette {
     /// Create the default BioFabric color palette.
     ///
-    /// Ported from `ColorGenerator.java` / `FabricColorGenerator.java`.
-    /// Contains 32 gene colors in the exact display order used by Java BioFabric.
+    /// Contains 32 gene colors in the exact display order.
     ///
     /// The gene colors are defined using HSB values that span the hue spectrum
     /// with carefully chosen saturation/brightness levels:
@@ -135,7 +124,6 @@ impl ColorPalette {
 
     /// Get a brighter variant of the given color.
     ///
-    /// Mirrors `FabricColorGenerator.newColorModel()` with a light factor.
     /// Each channel is pushed towards 255 by `factor`.
     pub fn brighter(color: FabricColor, factor: f64) -> FabricColor {
         let brighten = |c: u8| -> u8 {
@@ -147,7 +135,6 @@ impl ColorPalette {
 
     /// Get a darker variant of the given color.
     ///
-    /// Mirrors `FabricColorGenerator.newColorModel()` with a dark factor.
     /// Each channel is multiplied by `(1.0 - factor)`.
     pub fn darker(color: FabricColor, factor: f64) -> FabricColor {
         let darken = |c: u8| -> u8 {
@@ -177,10 +164,6 @@ impl ColorPalette {
     /// After these fixed entries, additional colors cycle for node groups
     /// and annotations.
     ///
-    /// ## References
-    ///
-    /// - Java: `NetworkAlignment.setupLinkGroupColors()`
-    /// - Java: `NetworkAlignmentLayout.installNodeGroupAnnotations()`
     pub fn alignment_palette() -> Self {
         Self {
             colors: vec![
@@ -249,16 +232,13 @@ impl ColorPalette {
 // Default gene color palette (32 colors)
 // ---------------------------------------------------------------------------
 //
-// Ported from ColorGenerator.java `buildGeneColors()` and `geneCol_`.
-//
-// The `geneCol_` array defines the **display order** (the order in which
-// colors are assigned to nodes/links). The HSB values come from
-// `buildGeneColors()`. We use `FabricColor::from_hsb()` at init time
-// for an exact match to Java's `Color.getHSBColor()`.
+// The color array defines the **display order** (the order in which
+// colors are assigned to nodes/links). We use `FabricColor::from_hsb()` at
+// init time.
 
-/// Build the 32 gene colors in Java BioFabric's default display order.
+/// Build the 32 gene colors in default display order.
 ///
-/// Index → color name (from `geneCol_`):
+/// Index → color name:
 ///  0  EX-blue               16  EX-yellow
 ///  1  EX-orange              17  EX-purple
 ///  2  EX-dark-cyan           18  EX-dark-purple
@@ -276,10 +256,8 @@ impl ColorPalette {
 /// 14  EX-magenta             30  EX-pale-magenta
 /// 15  EX-green               31  EX-pale-red-orange
 pub(crate) fn build_gene_colors() -> [FabricColor; 32] {
-    // Helper: identical to Java's Color.getHSBColor(h, s, b)
     let c = FabricColor::from_hsb;
 
-    // HSB values from ColorGenerator.buildGeneColors(), ordered by geneCol_
     [
         c(0.567, 1.0,  1.0 ),  //  0  EX-blue
         c(0.067, 1.0,  1.0 ),  //  1  EX-orange
@@ -320,7 +298,7 @@ pub(crate) fn build_gene_colors() -> [FabricColor; 32] {
 pub struct NamedGeneColor {
     /// Display index (0–31).
     pub index: usize,
-    /// Java key name (e.g., `"EX-blue"`).
+    /// Key name (e.g., `"EX-blue"`).
     pub key: &'static str,
     /// Human-readable description.
     pub description: &'static str,
@@ -366,8 +344,7 @@ pub const GENE_COLOR_NAMES: [NamedGeneColor; 32] = [
 // Special / UI colors (15 colors)
 // ---------------------------------------------------------------------------
 //
-// Ported from ColorGenerator.buildDefaultColors(). These are used for
-// background shading, inactive states, and annotation fills.
+// These are used for background shading, inactive states, and annotation fills.
 
 /// Special UI colors used for backgrounds, inactive states, and annotations.
 const SPECIAL_COLORS: [FabricColor; 15] = [
@@ -464,7 +441,7 @@ mod tests {
 
     #[test]
     fn test_from_hsb_green() {
-        // HSB(0.333, 1.0, 1.0) ~ pure green (may have ±1 rounding from Java)
+        // HSB(0.333, 1.0, 1.0) ~ pure green
         let c = FabricColor::from_hsb(0.333, 1.0, 1.0);
         assert!(c.r < 5, "r should be near 0, got {}", c.r);
         assert!(c.g > 250, "g should be near 255, got {}", c.g);

@@ -15,9 +15,6 @@
 //! - **Inline** - Place inter-cluster edges inline with cluster edges
 //! - **Between** - Place inter-cluster edges in a separate region between clusters
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.layouts.NodeClusterLayout`
 
 use super::build_data::LayoutBuildData;
 use super::default::{DefaultEdgeLayout, DefaultNodeLayout};
@@ -102,9 +99,6 @@ impl NodeClusterLayout {
     /// 4. Builds cluster link annotations (column ranges for intra-cluster links)
     /// 5. Populates cluster assignments on the layout for BIF export
     ///
-    /// ## References
-    ///
-    /// - Java: `NodeClusterLayout.doNodeLayout()` + annotation installation
     pub fn full_layout(
         &self,
         network: &Network,
@@ -131,7 +125,6 @@ impl NodeClusterLayout {
 
     /// Run the default node layout on a sub-network (one cluster).
     ///
-    /// Matches Java: `DefaultLayout.defaultNodeOrder(links, singletonNodes, starts, monitor)`
     fn layout_cluster_nodes(
         nodes: &HashSet<NodeId>,
         links: &[Link],
@@ -182,7 +175,6 @@ impl EdgeLayout for NodeClusterEdgeLayout {
 impl NodeClusterEdgeLayout {
     /// Rearrange links so inter-cluster edges appear between cluster regions.
     ///
-    /// Matches Java `NodeClusterLayout.doNodeLayout()` between-mode logic.
     #[allow(dead_code)]
     fn rearrange_between(&self, layout: &mut NetworkLayout, _build_data: &LayoutBuildData) {
         todo!()

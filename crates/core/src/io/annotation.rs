@@ -21,9 +21,6 @@
 //! - **layer**: Nesting layer (0 = outermost)
 //! - **color**: RGBA hex string
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.io.AnnotationLoader`
 
 use crate::io::ParseError;
 use crate::model::{Annotation, AnnotationSet};
@@ -46,9 +43,7 @@ pub fn parse_reader<R: Read>(reader: BufReader<R>) -> Result<AnnotationSet, Pars
     // 3. Parse: name, start (usize), end (usize), layer (usize), color (string)
     // 4. Build Annotation and add to AnnotationSet
     //
-    // See Java: org.systemsbiology.biofabric.io.AnnotationLoader
-    //
-    todo!("Implement annotation loader - see AnnotationLoader.java")
+    todo!("Implement annotation loader")
 }
 
 /// Load annotations from a string.
