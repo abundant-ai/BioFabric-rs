@@ -1,87 +1,36 @@
-//! Network (graph) container for BioFabric.
-//!
-//! The `Network` struct holds nodes and links and provides methods for
-//! querying and manipulating the graph structure.
+//! Network (graph) container.
 
 use super::{Link, Node, NodeId};
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-/// Adjacency index for fast node-to-link lookup.
-///
-/// Built once via [`Network::rebuild_adjacency_index`] and invalidated
-/// whenever the link list changes. Provides O(1) neighbor lookup instead
-/// of the O(E) full-scan fallback.
+/// Adjacency index for node-to-link lookup.
 #[derive(Debug, Clone, Default)]
 pub struct AdjacencyIndex {
-    /// Link indices per node ID.
     pub by_node: IndexMap<NodeId, Vec<usize>>,
-    /// Whether the index has been built and is valid.
     pub is_built: bool,
 }
 
-/// Top-level metadata about a network.
-///
-/// These flags summarize structural properties that certain layout algorithms
-/// require. They are populated either by the I/O parsers (which can detect
-/// these properties during load) or lazily on first access.
-///
+/// Network metadata.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct NetworkMetadata {
-    /// Whether the network has at least one directed edge.
-    ///
-    /// Set by the GW/SIF parser, or by calling [`Network::detect_directed`].
     pub is_directed: bool,
-
-    /// Whether the network is bipartite (two-colorable).
-    ///
-    /// Required by [`SetLayout`](crate::layout::SetLayout). Set by the
-    /// attribute loader or by calling [`Network::detect_bipartite`].
     pub is_bipartite: Option<bool>,
-
-    /// Whether the network is a DAG (directed acyclic graph).
-    ///
-    /// Required by [`HierDAGLayout`](crate::layout::HierDAGLayout).
-    /// Computed lazily by [`Network::detect_dag`].
     pub is_dag: Option<bool>,
-
-    /// Optional descriptive name for the network (e.g., file stem).
     pub name: Option<String>,
-
-    /// Optional description / source annotation.
     pub description: Option<String>,
 }
 
-/// A network (graph) containing nodes and links.
-///
-/// This is the primary data structure for BioFabric. It maintains:
-/// - A set of nodes (vertices)
-/// - A list of links (edges)
-/// - Optional: isolated nodes (nodes with no edges)
-///
-/// Represents a network graph,
-/// but contains only the graph data, not the layout information.
+/// Network (graph) containing nodes and links.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Network {
-    /// All nodes in the network, indexed by their ID.
-    /// Using IndexMap to preserve insertion order.
     #[serde(with = "indexmap::map::serde_seq")]
     nodes: IndexMap<NodeId, Node>,
-
-    /// All links in the network.
     links: Vec<Link>,
-
-    /// Nodes that have no incident edges ("lone" nodes).
-    /// These are tracked separately because they won't appear
-    /// in the links list.
     lone_nodes: IndexSet<NodeId>,
-
-    /// Structural metadata (directed, bipartite, DAG, etc.).
     #[serde(default)]
     pub metadata: NetworkMetadata,
-
-    /// Optional adjacency index (not serialized).
     #[serde(skip)]
     adjacency: AdjacencyIndex,
 }
@@ -336,7 +285,7 @@ impl Network {
     }
 }
 
-/// Result of comparing the neighborhoods of two nodes.
+/// Neighborhood comparison result.
 #[derive(Debug, Clone)]
 pub struct NodeComparison {
     pub node_a: NodeId,

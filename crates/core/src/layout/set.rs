@@ -1,4 +1,4 @@
-//! Set membership layout algorithm.
+//! Set membership layout.
 
 use super::build_data::LayoutBuildData;
 use super::default::DefaultEdgeLayout;
@@ -8,7 +8,7 @@ use crate::model::{Annotation, AnnotationSet, Network, NodeId};
 use crate::worker::ProgressMonitor;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-/// Relationship semantics for set membership.
+/// Set membership semantics.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SetSemantics {
     /// Members belong to sets (edge: member -> set).
@@ -18,23 +18,16 @@ pub enum SetSemantics {
     Contains,
 }
 
-/// Configuration for the set layout.
+/// Set layout configuration.
 #[derive(Debug, Clone, Default)]
 pub struct SetLayoutParams {
-    /// How to interpret edges.
     pub semantics: SetSemantics,
-    /// The relation type that indicates set membership.
-    /// If `None`, all relations are treated as membership.
     pub membership_relation: Option<String>,
 }
 
 /// Set membership layout.
-///
-/// Orders nodes so that set nodes and their members are adjacent,
-/// with sets ordered by cardinality.
 #[derive(Debug, Clone, Default)]
 pub struct SetLayout {
-    /// Layout configuration.
     pub config: SetLayoutParams,
 }
 

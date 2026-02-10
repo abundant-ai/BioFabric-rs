@@ -1,29 +1,4 @@
 //! Layout algorithms for BioFabric visualization.
-//!
-//! BioFabric layout consists of two phases:
-//!
-//! 1. **Node Layout** - Assigns each node to a row (y-coordinate)
-//! 2. **Edge Layout** - Assigns each edge to a column (x-coordinate)
-//!
-//! The layout determines the final visualization. Different layout algorithms
-//! produce different orderings that can reveal different network structures.
-//!
-//! ## Available Node Layouts
-//!
-//! | Layout | Description |
-//! |--------|-------------|
-//! | [`DefaultNodeLayout`] | Default node ordering |
-//! | [`NodeSimilarityLayout`] | Similarity-based ordering |
-//! | [`HierDAGLayout`] | Hierarchical DAG levels |
-//! | [`NodeClusterLayout`] | Attribute-based clustering |
-//! | [`ControlTopLayout`] | Control nodes at top |
-//! | [`SetLayout`] | Set membership (bipartite) |
-//! | [`WorldBankLayout`] | Hub-spoke grouping |
-//!
-//! ## Layout Result
-//!
-//! The [`NetworkLayout`] struct contains the computed layout. See [`result`]
-//! for the output data structures.
 
 pub mod build_data;
 pub mod cluster;

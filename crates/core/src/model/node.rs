@@ -1,16 +1,10 @@
-//! Node representation in BioFabric.
-//!
-//! In BioFabric visualization:
-//! - Each node is assigned to a specific row (y-coordinate)
-//! - The node spans horizontally from its first to last incident edge
+//! Node representation.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
-/// Unique identifier for a node.
-///
-/// This is a wrapper around a string name used as the node ID.
+/// Node identifier.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct NodeId(pub String);
 
@@ -44,29 +38,10 @@ impl From<String> for NodeId {
     }
 }
 
-/// A node in the BioFabric network.
-///
 /// A node in the network with optional attributes.
-///
-/// ## Attributes
-///
-/// Nodes can carry key-value attributes loaded from external attribute files.
-/// These attributes drive several layout algorithms:
-///
-/// - [`NodeClusterLayout`](crate::layout::NodeClusterLayout) — groups by a named attribute
-/// - [`SetLayout`](crate::layout::SetLayout) — groups by set membership attribute
-/// - [`ControlTopLayout`](crate::layout::ControlTopLayout) — identifies "control" nodes by attribute
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
-    /// Unique identifier for this node.
     pub id: NodeId,
-
-    /// Optional key-value attributes loaded from external files.
-    ///
-    /// These drive attribute-dependent layouts (cluster, set, control-top).
-    /// Common keys include `"cluster"`, `"set"`, `"type"`, `"is_control"`.
-    ///
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub attributes: HashMap<String, String>,
 }

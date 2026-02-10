@@ -1,96 +1,24 @@
 //! Layout result structures.
-//!
-//! These structures hold the computed layout information that can be used
-//! for rendering or export.
-//!
-//! ## Shadow-aware dual storage
-//!
-//! Each [`LinkLayout`] stores **two** column assignments and each [`NodeLayout`]
-//! stores **two** column spans:
-//!
-//! | Field suffix          | When to use                                |
-//! |-----------------------|--------------------------------------------|
-//! | *(none)*              | Shadow links **shown** (default BioFabric) |
-//! | `_no_shadows`         | Shadow links **hidden**                    |
-//!
-//! This lets the front-end toggle shadow display as an **O(1) switch** rather
-//! than an **O(V + E) recomputation**.  The edge layout algorithm computes both
-//! sets of column numbers in a single pass.
-//!
 
 use crate::model::{AnnotationSet, Network, NodeId};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-/// Complete layout information for a network.
-///
-/// This is the output of the layout computation, containing positions
-/// for all nodes and links.
+/// Complete layout for a network.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkLayout {
-    /// Layout info for each node, keyed by node ID.
     pub nodes: IndexMap<NodeId, NodeLayout>,
-
-    /// Layout info for each link, in column order.
     pub links: Vec<LinkLayout>,
-
-    /// Total number of rows (= number of nodes).
     pub row_count: usize,
-
-    /// Total number of columns when shadow links are displayed.
     pub column_count: usize,
-
-    /// Total number of columns when shadow links are hidden.
-    ///
-    /// Always ≤ `column_count` because shadow links are removed.
     pub column_count_no_shadows: usize,
-
-    // -----------------------------------------------------------------
-    // Annotations
-    // -----------------------------------------------------------------
-
-    /// Node group annotations (row ranges, e.g., cluster / DAG level / alignment group).
-    ///
-    /// These are the same regardless of shadow display mode.
     pub node_annotations: AnnotationSet,
-
-    /// Link group annotations when shadow links are displayed.
     pub link_annotations: AnnotationSet,
-
-    /// Link group annotations when shadow links are hidden.
-    ///
-    /// Column ranges differ from `link_annotations` because shadow link
-    /// columns are removed.
     pub link_annotations_no_shadows: AnnotationSet,
-
-    // -----------------------------------------------------------------
-    // Link grouping
-    // -----------------------------------------------------------------
-
-    /// Ordered list of relation types defining link group display order.
-    ///
-    /// This drives the link group annotations and the comparator used
-    /// during edge layout. The order is set during the edge layout phase.
-    ///
     pub link_group_order: Vec<String>,
-
-    /// Layout mode text for BIF serialization.
-    ///
-    /// Typical values: `"perNode"`, `"perNetwork"`.
-    /// Empty string means no explicit mode (ungrouped layout).
     pub layout_mode_text: String,
-
-    /// Annotations flag for link groups (`<linkGroups annots="...">`).
-    ///
-    /// Typically `"true"` or `"false"`. Empty means default (`"true"`).
     pub link_group_annots: String,
-
-    /// Per-node cluster assignments (node ID → cluster name).
-    ///
-    /// Populated by `NodeClusterLayout`. Written as `cluster="..."` attribute
-    /// on `<node>` elements in BIF XML.
-    ///
     #[serde(default, skip_serializing_if = "std::collections::HashMap::is_empty")]
     pub cluster_assignments: std::collections::HashMap<NodeId, String>,
 }
@@ -156,12 +84,7 @@ impl NetworkLayout {
     // Submodel extraction
     // =========================================================================
 
-    /// Extract a submodel from a fully laid-out session, compressing rows and columns.
-    ///
-    /// This is different from `Network::extract_subnetwork` which extracts from
-    /// the raw network and re-runs the layout from scratch. This function
-    /// preserves the original layout ordering and just compresses it.
-    ///
+    /// Extract a submodel from a laid-out session, compressing rows and columns.
     pub fn extract_submodel(
         &self,
         network: &Network,

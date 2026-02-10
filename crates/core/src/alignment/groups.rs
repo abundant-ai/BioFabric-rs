@@ -1,10 +1,4 @@
-//! Node group classification for alignment visualization.
-//!
-//! Each node in the merged network is assigned to a **node group** based on
-//! its color (Purple/Blue/Red) and the set of edge types incident to it.
-//! For example, a purple node with both COVERED and INDUCED_GRAPH1 edges
-//! belongs to group `(P:P/pBp)`.
-//!
+//! Node group classification for alignment.
 
 use super::merge::MergedNetwork;
 use super::types::{EdgeType, NodeColor};
@@ -135,26 +129,18 @@ const NODE_GROUP_ANNOTS_PERFECT: &[(&str, &str)] = &[
     ("(R:0/0)", "Green"),
 ];
 
-/// How to subdivide node groups when a perfect alignment is available.
+/// Subdivision mode when perfect alignment is available.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum PerfectNGMode {
-    /// No perfect alignment subdivision.
     #[default]
     None,
-    /// Subdivide groups by node correctness.
     NodeCorrectness,
-    /// Subdivide groups by Jaccard similarity threshold.
     JaccardSimilarity,
 }
 
-/// Jaccard similarity threshold for [`PerfectNGMode::JaccardSimilarity`].
-///
 pub const DEFAULT_JACCARD_THRESHOLD: f64 = 0.75;
 
 /// Tag identifying a node group.
-///
-/// Format: `"(color:edge_type1/edge_type2/...)"`, where color is `P`, `B`,
-/// or `R` and edge types are in canonical order.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NodeGroupTag(pub String);
 
@@ -177,33 +163,22 @@ impl Ord for NodeGroupTag {
     }
 }
 
-/// A single node group — a set of nodes sharing the same color + edge pattern.
+/// A single node group.
 #[derive(Debug, Clone)]
 pub struct NodeGroup {
-    /// The group tag (e.g., `"(P:P/pBp)"`).
     pub tag: NodeGroupTag,
-    /// Node color for all members.
     pub color: NodeColor,
-    /// Edge types incident to members of this group.
     pub edge_types: Vec<EdgeType>,
-    /// Member node IDs.
     pub members: Vec<NodeId>,
-    /// Annotation color name.
     pub annot_color: String,
 }
 
-/// Complete node group classification for a merged network.
-///
-/// Maps each node to its group and provides group-level statistics.
+/// Node group classification for a merged network.
 #[derive(Debug, Clone)]
 pub struct NodeGroupMap {
-    /// All groups, in canonical display order.
     pub groups: Vec<NodeGroup>,
-    /// Lookup: node ID -> index into `groups`.
     pub node_to_group: HashMap<NodeId, usize>,
-    /// The perfect NG mode used to build this map.
     pub perfect_mode: PerfectNGMode,
-    /// Jaccard threshold (only meaningful when mode is JaccardSimilarity).
     pub jaccard_threshold: f64,
 }
 
@@ -234,17 +209,12 @@ impl NodeGroupMap {
         todo!()
     }
 
-    /// Compute the group ratio vector (fraction of nodes in each group).
-    ///
-    /// Used for NGS (Node Group Similarity) scoring.
+    /// Compute the group ratio vector.
     pub fn ratio_vector(&self) -> Vec<f64> {
         todo!()
     }
 
     /// Compute the link group ratio vector.
-    ///
-    /// For each edge type, counts the edges of that type and divides by total.
-    /// Used for LGS (Link Group Similarity) scoring.
     pub fn link_ratio_vector(merged: &MergedNetwork) -> Vec<f64> {
         todo!()
     }

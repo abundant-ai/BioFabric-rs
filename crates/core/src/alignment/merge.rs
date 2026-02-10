@@ -6,31 +6,16 @@ use crate::model::{Network, NodeId};
 use crate::worker::ProgressMonitor;
 use std::collections::HashMap;
 
-/// The result of merging two networks via an alignment.
+/// Result of merging two networks via an alignment.
 #[derive(Debug, Clone)]
 pub struct MergedNetwork {
-    /// The merged network (nodes use `"G1::G2"` naming convention).
     pub network: Network,
-
-    /// Color classification for each merged node.
     pub node_colors: HashMap<NodeId, NodeColor>,
-
-    /// Edge type classification for each link (by link index in the network).
     pub edge_types: Vec<EdgeType>,
-
-    /// Map from merged node IDs back to their original components.
     pub node_origins: HashMap<NodeId, MergedNodeId>,
-
-    /// Optional per-node correctness metadata.
     pub merged_to_correct: Option<HashMap<NodeId, bool>>,
-
-    /// Number of nodes from G1.
     pub g1_node_count: usize,
-
-    /// Number of nodes from G2.
     pub g2_node_count: usize,
-
-    /// Number of aligned (purple) nodes.
     pub aligned_count: usize,
 }
 
