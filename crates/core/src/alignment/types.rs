@@ -43,47 +43,19 @@ pub enum EdgeType {
 
 impl EdgeType {
     pub fn short_code(&self) -> &'static str {
-        match self {
-            EdgeType::Covered => "P",
-            EdgeType::InducedGraph1 => "pBp",
-            EdgeType::HalfOrphanGraph1 => "pBb",
-            EdgeType::FullOrphanGraph1 => "bBb",
-            EdgeType::InducedGraph2 => "pRp",
-            EdgeType::HalfUnalignedGraph2 => "pRr",
-            EdgeType::FullUnalignedGraph2 => "rRr",
-        }
+        todo!()
     }
 
     pub fn all() -> &'static [EdgeType] {
-        &[
-            EdgeType::Covered,
-            EdgeType::InducedGraph1,
-            EdgeType::HalfOrphanGraph1,
-            EdgeType::FullOrphanGraph1,
-            EdgeType::InducedGraph2,
-            EdgeType::HalfUnalignedGraph2,
-            EdgeType::FullUnalignedGraph2,
-        ]
+        todo!()
     }
 
     pub fn is_graph1(&self) -> bool {
-        matches!(
-            self,
-            EdgeType::Covered
-                | EdgeType::InducedGraph1
-                | EdgeType::HalfOrphanGraph1
-                | EdgeType::FullOrphanGraph1
-        )
+        todo!()
     }
 
     pub fn is_graph2(&self) -> bool {
-        matches!(
-            self,
-            EdgeType::Covered
-                | EdgeType::InducedGraph2
-                | EdgeType::HalfUnalignedGraph2
-                | EdgeType::FullUnalignedGraph2
-        )
+        todo!()
     }
 }
 

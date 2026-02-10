@@ -49,31 +49,6 @@ impl SetLayout {
         self
     }
 
-    /// Extract set→members mapping from the network.
-    fn extract_sets(
-        &self,
-        network: &Network,
-    ) -> (
-        HashMap<NodeId, BTreeSet<NodeId>>,
-        HashMap<NodeId, BTreeSet<NodeId>>,
-    ) {
-        todo!()
-    }
-
-    /// Order the set nodes.
-    fn order_sets(elems_per_set: &HashMap<NodeId, BTreeSet<NodeId>>) -> Vec<NodeId> {
-        todo!()
-    }
-
-    /// Order the member nodes.
-    fn order_members(
-        set_list: &[NodeId],
-        sets_per_elem: &HashMap<NodeId, BTreeSet<NodeId>>,
-        network: &Network,
-    ) -> Vec<NodeId> {
-        todo!()
-    }
-
     /// Run set node and edge layout.
     pub fn full_layout(
         &self,
