@@ -1,9 +1,4 @@
 //! Network merging for alignment visualization.
-//!
-//! Given two networks (G1, G2) and an alignment mapping, produces a single
-//! merged network where aligned nodes are combined and edges are classified
-//! by their alignment status.
-//!
 
 use super::types::{EdgeType, MergedNodeId, NodeColor};
 use crate::io::align::AlignmentMap;
@@ -12,9 +7,6 @@ use crate::worker::ProgressMonitor;
 use std::collections::HashMap;
 
 /// The result of merging two networks via an alignment.
-///
-/// Contains the merged network plus metadata about each node and edge's
-/// alignment classification.
 #[derive(Debug, Clone)]
 pub struct MergedNetwork {
     /// The merged network (nodes use `"G1::G2"` naming convention).
@@ -29,22 +21,7 @@ pub struct MergedNetwork {
     /// Map from merged node IDs back to their original components.
     pub node_origins: HashMap<NodeId, MergedNodeId>,
 
-    /// Per-node correctness when a perfect (reference) alignment is provided.
-    ///
-    /// Maps merged node IDs to `true` if the alignment matches the perfect
-    /// alignment for that node. Populated only when a perfect alignment is
-    /// provided; `None` otherwise.
-    ///
-    /// For **purple** (aligned) nodes:
-    ///   `true` if `alignment[g1] == perfect_alignment[g1]`
-    ///
-    /// For **blue** (unaligned G1) nodes:
-    ///   `true` if the perfect alignment also does NOT align this G1 node
-    ///   (i.e., `perfect_alignment[g1]` is `None`)
-    ///
-    /// Red (G2-only) nodes are not tracked (correctness is not tracked for them
-    /// either — correctness is only meaningful for G1 nodes).
-    ///
+    /// Optional per-node correctness metadata.
     pub merged_to_correct: Option<HashMap<NodeId, bool>>,
 
     /// Number of nodes from G1.
@@ -59,20 +36,6 @@ pub struct MergedNetwork {
 
 impl MergedNetwork {
     /// Merge two networks using an alignment mapping.
-    ///
-    /// # Arguments
-    ///
-    /// * `g1` — The smaller network
-    /// * `g2` — The larger network
-    /// * `alignment` — Mapping from G1 node IDs to G2 node IDs
-    /// * `perfect` — Optional perfect (reference) alignment for correctness
-    ///   tracking. When provided, `merged_to_correct` is populated.
-    /// * `monitor` — Progress/cancellation monitor
-    ///
-    /// # Returns
-    ///
-    /// A `MergedNetwork` containing the combined graph with classified nodes
-    /// and edges.
     pub fn from_alignment(
         g1: &Network,
         g2: &Network,
@@ -113,29 +76,22 @@ impl MergedNetwork {
         todo!()
     }
 
-    /// Whether a perfect alignment was provided (i.e., correctness data is available).
+    /// Whether correctness data is available.
     pub fn has_perfect_alignment(&self) -> bool {
         todo!()
     }
 
-    /// Whether a node is correctly aligned/unaligned according to the perfect alignment.
-    ///
-    /// Returns `None` if no perfect alignment was provided, or if the node
-    /// is not tracked (e.g., red/G2-only nodes).
+    /// Per-node correctness lookup.
     pub fn is_node_correct(&self, node_id: &NodeId) -> Option<bool> {
         todo!()
     }
 
-    /// Number of correctly aligned/unaligned nodes (from `merged_to_correct`).
-    ///
-    /// Returns `None` if no perfect alignment was provided.
+    /// Count of nodes with positive correctness.
     pub fn correct_count(&self) -> Option<usize> {
         todo!()
     }
 
-    /// Node correctness (NC) metric.
-    ///
-    /// Returns `None` if no perfect alignment was provided.
+    /// Node correctness metric.
     pub fn node_correctness(&self) -> Option<f64> {
         todo!()
     }

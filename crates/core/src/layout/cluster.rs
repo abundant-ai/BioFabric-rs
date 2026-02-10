@@ -1,20 +1,4 @@
 //! Node cluster layout algorithm.
-//!
-//! Groups nodes into clusters based on node attributes, then orders clusters
-//! and nodes within each cluster.
-//!
-//! ## Cluster Ordering Modes
-//!
-//! - **BreadthFirst** - Order clusters by BFS traversal of inter-cluster links
-//! - **LinkSize** - Order clusters by number of inter-cluster links (descending)
-//! - **NodeSize** - Order clusters by number of nodes (descending)
-//! - **Name** - Order clusters alphabetically by name
-//!
-//! ## Intra-cluster Edge Placement
-//!
-//! - **Inline** - Place inter-cluster edges inline with cluster edges
-//! - **Between** - Place inter-cluster edges in a separate region between clusters
-//!
 
 use super::build_data::LayoutBuildData;
 use super::default::{DefaultEdgeLayout, DefaultNodeLayout};
@@ -90,15 +74,7 @@ impl NodeClusterLayout {
         self
     }
 
-    /// Run the complete cluster layout pipeline: node order, edge layout, and annotations.
-    ///
-    /// This is the full pipeline that:
-    /// 1. Computes the node order (grouped by cluster)
-    /// 2. Runs the cluster edge layout
-    /// 3. Builds cluster node annotations (contiguous row ranges per cluster)
-    /// 4. Builds cluster link annotations (column ranges for intra-cluster links)
-    /// 5. Populates cluster assignments on the layout for BIF export
-    ///
+    /// Run cluster node and edge layout.
     pub fn full_layout(
         &self,
         network: &Network,
@@ -109,10 +85,6 @@ impl NodeClusterLayout {
     }
 
     /// Build per-cluster sub-networks from the main network.
-    ///
-    /// Groups links by cluster: a link belongs to a cluster if both
-    /// endpoints are in the same cluster. Inter-cluster links are tracked
-    /// separately.
     fn build_cluster_data(
         &self,
         network: &Network,
@@ -123,8 +95,7 @@ impl NodeClusterLayout {
         todo!()
     }
 
-    /// Run the default node layout on a sub-network (one cluster).
-    ///
+    /// Run node layout on a single cluster sub-network.
     fn layout_cluster_nodes(
         nodes: &HashSet<NodeId>,
         links: &[Link],

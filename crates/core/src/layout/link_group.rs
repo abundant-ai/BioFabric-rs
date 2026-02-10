@@ -85,8 +85,7 @@ impl LinkGroupIndex {
 /// to define the canonical edge sort order.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LinkSortKey {
-    // Internal fields — agent must determine the sort key structure
-    // from the reference implementation.
+    // Internal fields are intentionally opaque in this skeleton.
     _opaque: (),
 }
 

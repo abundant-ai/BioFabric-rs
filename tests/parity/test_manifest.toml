@@ -1,9 +1,8 @@
 # Parity Test Manifest
 #
-# Each [[test]] entry defines one parity test case. Golden files are generated
-# by running BioFabric (Java) headlessly via Docker and stored under
-# tests/parity/goldens/<golden_dir>/. The Rust tests load the same input,
-# run the same algorithm, and diff the output byte-for-byte.
+# Each [[test]] entry defines one parity test case.
+# Golden files are stored under tests/parity/goldens/<golden_dir>/.
+# Tests compare generated outputs to those files.
 #
 # Outputs compared:
 #   output.noa  - node order (nodeName = row)
@@ -14,7 +13,7 @@
 #   id          - Unique test identifier (used as Rust test name)
 #   description - Human-readable description
 #   input       - Filename in networks/sif/ or networks/gw/
-#   golden_dir  - Directory name under goldens/ containing reference outputs
+#   golden_dir  - Directory name under goldens/ containing expected outputs
 #   layout      - Layout algorithm: "default" (more later)
 #   shadows     - Whether shadow links are enabled
 #   compare     - List of output files to compare: ["noa", "eda", "bif"]
@@ -112,7 +111,7 @@ tags = ["sif", "edge_case"]
 
 [[test]]
 id = "sif_linear_chain"
-description = "Linear chain (10 nodes, 9 edges) — path graph, degree-2 tie-breaking"
+description = "Linear chain (10 nodes, 9 edges)"
 input = "linear_chain.sif"
 golden_dir = "linear_chain_default"
 layout = "default"
@@ -228,7 +227,7 @@ tags = ["sif", "edge_case", "noshadow"]
 
 [[test]]
 id = "sif_linear_chain_noshadow"
-description = "Linear chain, shadows OFF — tests degree-2 tie-breaking without shadows"
+description = "Linear chain, shadows OFF"
 input = "linear_chain.sif"
 golden_dir = "linear_chain_noshadow"
 layout = "default"
@@ -894,7 +893,7 @@ tags = ["analysis", "jaccard"]
 
 [[test]]
 id = "analysis_jaccard_dense_clique_AB"
-description = "Jaccard similarity of A,B in dense clique (should be high)"
+description = "Jaccard similarity of A,B in dense clique"
 input = "dense_clique.sif"
 golden_dir = "analysis_jaccard_dense_clique_AB"
 layout = "analysis_jaccard"
@@ -1227,8 +1226,6 @@ layout = "alignment"
 shadows = true
 align_net2 = "align_net2.sif"
 align_file = "test_partial.align"
-# Note: no perfect_align — JaccardSimilarity NPEs when the main alignment
-# is partial (unmapped nodes cause null findMatch in jaccSimDecision).
 compare = ["noa", "eda", "bif"]
 tags = ["alignment"]
 
@@ -1327,7 +1324,7 @@ tags = ["alignment", "orphan"]
 
 [[test]]
 id = "align_yeast_sc_perfect_orphan"
-description = "Yeast↔SC perfect alignment: orphan view (should have minimal orphans)"
+description = "Yeast↔SC perfect alignment: orphan view"
 input = "Yeast2KReduced.sif"
 golden_dir = "align_yeast_sc_perfect_orphan"
 layout = "alignment"
@@ -1341,7 +1338,7 @@ tags = ["alignment", "orphan", "realistic"]
 
 [[test]]
 id = "align_yeast_sc_s3_pure_orphan"
-description = "Yeast↔SC pure S3: orphan view (more orphans than perfect)"
+description = "Yeast↔SC pure S3: orphan view"
 input = "Yeast2KReduced.sif"
 golden_dir = "align_yeast_sc_s3_pure_orphan"
 layout = "alignment"
@@ -1353,7 +1350,7 @@ view_type = "orphan"
 compare = ["noa", "eda", "bif", "scores"]
 tags = ["alignment", "orphan", "realistic"]
 
-# --- ViewType.CYCLE: highlights incorrect alignments via cycle/path detection ---
+# --- ViewType.CYCLE ---
 
 [[test]]
 id = "align_casestudy_iv_cycle"
