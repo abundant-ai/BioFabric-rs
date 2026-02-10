@@ -5,10 +5,6 @@
 //! For example, a purple node with both COVERED and INDUCED_GRAPH1 edges
 //! belongs to group `(P:P/pBp)`.
 //!
-//! The reference implementation produces 40-76 distinct groups depending on the
-//! network. These groups drive both the layout ordering and the color
-//! assignments in the visualization.
-//!
 
 use super::merge::MergedNetwork;
 use super::types::{EdgeType, NodeColor};
@@ -140,21 +136,14 @@ const NODE_GROUP_ANNOTS_PERFECT: &[(&str, &str)] = &[
 ];
 
 /// How to subdivide node groups when a perfect alignment is available.
-///
-/// Without a perfect alignment, there are ~40 base node groups. With a
-/// perfect alignment, each base group can be split into "correct" and
-/// "incorrect" subgroups, yielding ~76 groups.
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum PerfectNGMode {
-    /// No perfect alignment — use base groups only (~40 groups).
+    /// No perfect alignment subdivision.
     #[default]
     None,
-    /// Split groups by node correctness (does alignment match perfect?).
-    /// Produces ~76 groups (each base group split into correct/incorrect).
+    /// Subdivide groups by node correctness.
     NodeCorrectness,
-    /// Split groups by Jaccard similarity threshold (default 0.75).
-    /// Produces ~76 groups (each base group split into above/below threshold).
+    /// Subdivide groups by Jaccard similarity threshold.
     JaccardSimilarity,
 }
 

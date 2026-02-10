@@ -1,14 +1,7 @@
 // ---------------------------------------------------------------------------
 // Test configuration and runner functions
 //
-// The layout runner functions, format functions, and test dispatch functions
-// in this file are stubs (`todo!()`). You must implement them as part of the
-// task. The verifier replaces this file with a complete version at test time,
-// but you need working implementations here to run tests locally during
-// development.
-//
-// Study the ParityConfig fields and the test macros in macros.rs to understand
-// what each runner must do.
+// This file contains stubbed runner and formatting helpers.
 // ---------------------------------------------------------------------------
 
 use crate::common::*;
@@ -152,24 +145,22 @@ pub fn parse_set_semantics(s: Option<&str>) -> SetSemantics {
 // ---------------------------------------------------------------------------
 // Layout runner functions
 //
-// Each function below must load data, run the appropriate layout pipeline,
-// and return a NetworkLayout. These are stubs — implement them to wire up
-// your library's layout algorithms.
+// These functions are intentionally left as stubs.
 // ---------------------------------------------------------------------------
 
 /// Load a network from a file based on extension.
 pub fn load_network(path: &std::path::Path) -> Network {
-    todo!("Implement: detect format by extension and parse the file")
+    todo!("TODO")
 }
 
 /// Run default layout and get the NetworkLayout.
 pub fn run_default_layout(network: &Network) -> NetworkLayout {
-    todo!("Implement: default node layout + default edge layout")
+    todo!("TODO")
 }
 
 /// Run layout with a pre-determined node order (for fixed-order import).
 pub fn run_layout_with_node_order(network: &Network, node_order: Vec<NodeId>) -> NetworkLayout {
-    todo!("Implement: skip node layout, use given order, run edge layout")
+    todo!("TODO")
 }
 
 /// Run layout with link group configuration.
@@ -178,12 +169,12 @@ pub fn run_layout_with_groups(
     link_groups: &[String],
     mode: LayoutMode,
 ) -> NetworkLayout {
-    todo!("Implement: default node layout + grouped edge layout + annotations")
+    todo!("TODO")
 }
 
 /// Run a similarity layout (resort or clustered mode).
 pub fn run_similarity_layout(network: &Network, mode: SimilarityMode) -> NetworkLayout {
-    todo!("Implement: similarity node layout + default edge layout")
+    todo!("TODO")
 }
 
 /// Run a similarity layout with custom parameters.
@@ -194,22 +185,22 @@ pub fn run_similarity_layout_custom(
     tolerance: Option<f64>,
     chain_length: Option<usize>,
 ) -> NetworkLayout {
-    todo!("Implement: similarity layout with custom pass_count/tolerance/chain_length")
+    todo!("TODO")
 }
 
 /// Run HierDAG layout and get the NetworkLayout.
 pub fn run_hierdag_layout(network: &Network, params: &LayoutParams) -> NetworkLayout {
-    todo!("Implement: hierarchical DAG node layout + edge layout + annotations")
+    todo!("TODO")
 }
 
 /// Run WorldBank layout and get the NetworkLayout.
 pub fn run_world_bank_layout(network: &Network) -> NetworkLayout {
-    todo!("Implement: world bank (hub-spoke) node layout + edge layout")
+    todo!("TODO")
 }
 
 /// Run the SetLayout with the given semantics.
 pub fn run_set_layout(network: &Network, semantics: SetSemantics) -> NetworkLayout {
-    todo!("Implement: set layout with given semantics")
+    todo!("TODO")
 }
 
 /// Run the ControlTop layout with the given control and target ordering modes.
@@ -219,7 +210,7 @@ pub fn run_control_top_layout(
     targ_mode: TargetOrder,
     control_nodes_explicit: Option<&[&str]>,
 ) -> NetworkLayout {
-    todo!("Implement: control-top node layout + edge layout")
+    todo!("TODO")
 }
 
 /// Run the NodeCluster layout with explicit ordering and placement modes.
@@ -229,7 +220,7 @@ pub fn run_node_cluster_layout_with_params(
     order: ClusterOrder,
     placement: InterClusterPlacement,
 ) -> NetworkLayout {
-    todo!("Implement: parse attribute file, run cluster node layout + edge layout")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
@@ -248,17 +239,17 @@ pub fn eda_file_path(filename: &str) -> PathBuf {
 
 /// Parse a NOA-format file and return node IDs sorted by ascending row number.
 pub fn parse_noa_format_file(path: &std::path::Path) -> Vec<NodeId> {
-    todo!("Implement: parse NOA file format (header + 'name = row' lines)")
+    todo!("TODO")
 }
 
 /// Parse an EDA format file and return the link ordering.
 pub fn parse_eda_format_file(path: &std::path::Path) -> Vec<(String, String, String, bool, usize)> {
-    todo!("Implement: parse EDA file format (header + link spec lines)")
+    todo!("TODO")
 }
 
 /// Run layout with a fixed link order from an EDA file.
 pub fn run_layout_with_link_order(network: &Network, eda_path: &std::path::Path) -> NetworkLayout {
-    todo!("Implement: parse EDA, build layout from fixed link order")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
@@ -272,15 +263,15 @@ pub fn align_file_path(filename: &str) -> PathBuf {
 
 /// Map an alignment file to its corresponding perfect alignment file (if any).
 pub fn alignment_perfect_file(align_file: &str) -> Option<&'static str> {
-    todo!("Implement: map alignment filenames to their perfect-alignment counterparts")
+    todo!("TODO")
 }
 
 pub fn alignment_ng_mode(golden_dirname: &str) -> Option<PerfectNGMode> {
-    todo!("Implement: determine PerfectNG mode from golden dirname")
+    todo!("TODO")
 }
 
 pub fn alignment_use_node_groups(golden_dirname: &str) -> bool {
-    todo!("Implement: determine whether to use node groups from golden dirname")
+    todo!("TODO")
 }
 
 pub struct AlignmentLayoutResult {
@@ -296,7 +287,7 @@ pub fn run_alignment_layout(
     align_file: &str,
     mode: AlignmentLayoutMode,
 ) -> AlignmentLayoutResult {
-    todo!("Implement: parse alignment, merge networks, run alignment layout pipeline")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
@@ -305,7 +296,7 @@ pub fn run_alignment_layout(
 
 /// Extract a subnetwork containing only the specified nodes.
 pub fn extract_subnetwork(network: &Network, node_names: &[&str]) -> Network {
-    todo!("Implement: filter network to named nodes and their interconnecting edges")
+    todo!("TODO")
 }
 
 /// Extract a submodel from a fully laid-out session, compressing rows and columns.
@@ -314,7 +305,7 @@ pub fn extract_submodel(
     layout: &NetworkLayout,
     node_names: &[&str],
 ) -> (Network, NetworkLayout) {
-    todo!("Implement: extract and compress submodel from layout")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
@@ -323,12 +314,12 @@ pub fn extract_submodel(
 
 /// Format a NetworkLayout as NOA string.
 pub fn format_noa(layout: &NetworkLayout) -> String {
-    todo!("Implement: format layout as NOA (node order) text")
+    todo!("TODO")
 }
 
 /// Format a NetworkLayout as EDA string (shadows ON).
 pub fn format_eda(layout: &NetworkLayout) -> String {
-    todo!("Implement: format layout as EDA (edge/link column) text")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
@@ -359,38 +350,36 @@ pub fn parse_float_from_text(text: &str) -> Option<f64> {
 }
 
 pub fn has_undirected_cycle(network: &Network) -> bool {
-    todo!("Implement: detect undirected cycles in network")
+    todo!("TODO")
 }
 
 // ---------------------------------------------------------------------------
 // Test runner functions (one per output format)
 //
-// Each function loads the input, runs the appropriate layout, formats the
-// output, and compares against the golden file. Implement these by
-// dispatching to the layout runners above based on ParityConfig fields.
+// These functions are intentionally left as stubs.
 // ---------------------------------------------------------------------------
 
 /// Run an analysis (non-layout) parity test.
 pub fn run_analysis_test(cfg: &ParityConfig) {
-    todo!("Implement: dispatch analysis tests (cycle detection, Jaccard)")
+    todo!("TODO")
 }
 
 /// Run a NOA (node order) parity test.
 #[allow(dead_code)]
 pub fn run_noa_test(cfg: &ParityConfig) {
-    todo!("Implement: load input, run layout based on cfg, format NOA, compare to golden")
+    todo!("TODO")
 }
 
 /// Run an EDA (edge/link order) parity test.
 #[allow(dead_code)]
 pub fn run_eda_test(cfg: &ParityConfig) {
-    todo!("Implement: load input, run layout based on cfg, format EDA, compare to golden")
+    todo!("TODO")
 }
 
 /// Build the BIF session for a parity test, returning the exported BIF string.
 #[allow(dead_code)]
 pub fn produce_bif_string(cfg: &ParityConfig) -> String {
-    todo!("Implement: load input, run layout, build session, export BIF XML")
+    todo!("TODO")
 }
 
 /// Run a BIF (session XML) parity test.
@@ -414,13 +403,13 @@ pub fn run_bif_test_nid_normalized(cfg: &ParityConfig) {
 /// Run NOA test with unordered (set-based) comparison.
 #[allow(dead_code)]
 pub fn run_noa_test_unordered(cfg: &ParityConfig) {
-    todo!("Implement: alignment NOA test with unordered comparison")
+    todo!("TODO")
 }
 
 /// Run EDA test with unordered (set-based) comparison.
 #[allow(dead_code)]
 pub fn run_eda_test_unordered(cfg: &ParityConfig) {
-    todo!("Implement: alignment EDA test with unordered comparison")
+    todo!("TODO")
 }
 
 /// Run BIF test with NID normalization and unordered node/link sections.

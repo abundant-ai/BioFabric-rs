@@ -1,4 +1,4 @@
-// Pipeline smoke test for load → layout → extract.
+// Smoke test for a basic load/layout/extract flow.
 
 use std::collections::HashSet;
 use std::path::PathBuf;

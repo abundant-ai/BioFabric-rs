@@ -1,13 +1,4 @@
 //! Set membership layout algorithm.
-//!
-//! Designed for bipartite-style networks where one class of nodes represents
-//! "sets" and the other class represents "members". For example, gene
-//! ontology terms (sets) and genes (members).
-//!
-//! ## Semantics
-//!
-//! - **BelongsTo** - Members belong to sets (edges go member -> set)
-//! - **Contains** - Sets contain members (edges go set -> member)
 
 use super::build_data::LayoutBuildData;
 use super::default::DefaultEdgeLayout;
@@ -90,7 +81,7 @@ impl SetLayout {
         todo!()
     }
 
-    /// Run the complete set layout pipeline: node order, edge layout, and annotations.
+    /// Run set node and edge layout.
     pub fn full_layout(
         &self,
         network: &Network,

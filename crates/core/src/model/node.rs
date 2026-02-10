@@ -10,9 +10,7 @@ use std::fmt;
 
 /// Unique identifier for a node.
 ///
-/// This is a wrapper around a string name. In the original implementation,
-/// nodes have both a numeric ID and a display name. For simplicity,
-/// we use the name as the ID directly.
+/// This is a wrapper around a string name used as the node ID.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct NodeId(pub String);
 
