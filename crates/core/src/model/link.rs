@@ -82,99 +82,41 @@ impl Link {
     /// # Panics
     /// Panics if this is a feedback link (self-loop).
     pub fn flipped(&self) -> Self {
-        assert!(
-            !self.is_feedback(),
-            "Cannot flip a feedback link (self-loop)"
-        );
-        Self {
-            source: self.target.clone(),
-            target: self.source.clone(),
-            relation: self.relation.clone(),
-            directed: self.directed,
-            is_shadow: self.is_shadow,
-        }
+        todo!()
     }
 
     /// Create the shadow version of this link.
     ///
     /// Returns `None` for feedback links (self-loops), which have no
-    /// meaningful shadow. The caller (`Network::generate_shadows`) already
-    /// skips feedback links, but this API makes the invariant explicit.
-    ///
+    /// meaningful shadow.
     pub fn to_shadow(&self) -> Option<Self> {
-        if self.is_feedback() {
-            None
-        } else {
-            let mut shadow = self.flipped();
-            shadow.is_shadow = true;
-            Some(shadow)
-        }
+        todo!()
     }
 
     /// Case-insensitive relation comparison.
-    ///
-    /// Relation strings are compared case-insensitively.
     pub fn relation_eq(&self, other: &Link) -> bool {
-        self.relation.eq_ignore_ascii_case(&other.relation)
+        todo!()
     }
 
     /// Check if this link and another form a shadow pair.
     ///
-    /// A shadow pair consists of a regular link and its shadow copy, where
-    /// the shadow has swapped source/target and `is_shadow = true`.
-    /// Relation comparison is case-insensitive.
-    ///
-    /// For example, if this link is `A -> B (shadow=false)`, and other is
-    /// `B -> A (shadow=true)`, they form a shadow pair.
+    /// A shadow pair consists of a regular link and its shadow copy.
     pub fn is_shadow_pair(&self, other: &Link) -> bool {
-        self.source == other.target
-            && self.target == other.source
-            && self.relation_eq(other)
-            && self.directed == other.directed
-            && self.is_shadow != other.is_shadow
+        todo!()
     }
 
     /// Check if this link is synonymous with another.
     ///
     /// Two links are synonymous if they represent the same undirected edge,
-    /// possibly with source and target swapped. Relation comparison is
-    /// case-insensitive.
+    /// possibly with source and target swapped.
     pub fn is_synonymous(&self, other: &Link) -> bool {
-        if self == other {
-            return true;
-        }
-
-        // If either is directed, they can't be synonymous unless equal
-        if self.directed == Some(true) || other.directed == Some(true) {
-            return false;
-        }
-
-        // Check if same relation and shadow status (case-insensitive)
-        if !self.relation_eq(other) {
-            return false;
-        }
-        if self.is_shadow != other.is_shadow {
-            return false;
-        }
-
-        // Check if nodes are swapped
-        self.source == other.target && self.target == other.source
+        todo!()
     }
 }
 
 impl fmt::Display for Link {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let arrow = match self.directed {
-            Some(true) => "->",
-            Some(false) => "--",
-            None => "-?-",
-        };
-        let shadow = if self.is_shadow { " (shadow)" } else { "" };
-        write!(
-            f,
-            "{} {} {} [{}]{}",
-            self.source, arrow, self.target, self.relation, shadow
-        )
+        todo!()
     }
 }
 
@@ -199,46 +141,5 @@ mod tests {
 
         assert!(!normal.is_feedback());
         assert!(feedback.is_feedback());
-    }
-
-    #[test]
-    fn test_link_flip() {
-        let link = Link::new("A", "B", "rel");
-        let flipped = link.flipped();
-
-        assert_eq!(flipped.source.as_str(), "B");
-        assert_eq!(flipped.target.as_str(), "A");
-        assert_eq!(flipped.relation, "rel");
-    }
-
-    #[test]
-    #[should_panic(expected = "Cannot flip a feedback link")]
-    fn test_flip_feedback_panics() {
-        let feedback = Link::new("A", "A", "rel");
-        let _ = feedback.flipped();
-    }
-
-    #[test]
-    fn test_shadow_pair() {
-        let link = Link::new("A", "B", "rel");
-        let shadow = link.to_shadow().expect("non-feedback link should produce shadow");
-
-        assert!(link.is_shadow_pair(&shadow));
-        assert!(shadow.is_shadow_pair(&link));
-        assert!(!link.is_shadow_pair(&link));
-    }
-
-    #[test]
-    fn test_to_shadow_feedback_returns_none() {
-        let feedback = Link::new("A", "A", "self");
-        assert!(feedback.to_shadow().is_none());
-    }
-
-    #[test]
-    fn test_synonymous() {
-        let link1 = Link::new("A", "B", "rel");
-        let link2 = Link::new("B", "A", "rel");
-
-        assert!(link1.is_synonymous(&link2));
     }
 }

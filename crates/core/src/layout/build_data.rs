@@ -89,69 +89,27 @@ impl LayoutBuildData {
 
     /// Ensure the link-group index is built and return a reference to it.
     pub fn link_group_index(&mut self) -> &LinkGroupIndex {
-        if self.link_group_index.is_none() {
-            self.link_group_index = Some(LinkGroupIndex::build(
-                self.network.links_slice(),
-                &self.node_order,
-            ));
-        }
-        self.link_group_index.as_ref().unwrap()
+        todo!()
     }
 }
 
 /// Alignment-specific build data carried through layout phases.
-///
-/// Stores alignment metadata that the alignment node/edge layouts need.
 #[derive(Debug, Clone)]
 pub struct AlignmentBuildData {
-    /// Node color assignments (Purple/Blue/Red).
     pub node_colors: HashMap<NodeId, crate::alignment::types::NodeColor>,
-
-    /// Per-node correctness map from perfect alignment comparison.
-    ///
-    /// Maps merged node IDs → whether the alignment is correct for that node.
-    /// `None` if no perfect alignment was provided. Flows from
-    /// [`MergedNetwork::merged_to_correct`] to `NodeGroupMap` and scoring.
-    ///
     pub merged_to_correct: Option<HashMap<NodeId, bool>>,
-
-    /// Precomputed node groups (for GROUP and CYCLE layouts).
     pub groups: Option<crate::alignment::groups::NodeGroupMap>,
-
-    /// Cycle bounds for CYCLE layout.
-    ///
-    /// Each entry contains the start node, end node, whether it's a correct
-    /// alignment, and whether it's a cycle (vs a path). Used by
-    /// `AlignCycleEdgeLayout` to generate per-cycle/path link annotations.
-    ///
     pub cycle_bounds: Vec<CycleBound>,
-
-    /// Whether to use node groups for annotation (GROUP layout mode).
-    ///
-    /// When true, the `AlignCycleEdgeLayout` skips its custom link annotations
-    /// and defers to node group annotations instead.
     pub use_node_groups: bool,
-
-    /// Which alignment layout view is active.
     pub view_mode: crate::alignment::layout::AlignmentLayoutMode,
-
-    /// Whether a perfect alignment was provided.
     pub has_perfect_alignment: bool,
 }
 
 /// Boundary information for a single alignment cycle or path.
-///
-/// Used by `AlignCycleEdgeLayout` to determine where each cycle/path's
-/// edges start and end in the column ordering, and to label annotations.
-///
 #[derive(Debug, Clone)]
 pub struct CycleBound {
-    /// The first node in this cycle/path (by row order).
     pub bound_start: NodeId,
-    /// The last node in this cycle/path (by row order).
     pub bound_end: NodeId,
-    /// Whether this cycle/path is correctly aligned.
     pub is_correct: bool,
-    /// Whether this is a true cycle (`true`) or a path (`false`).
     pub is_cycle: bool,
 }

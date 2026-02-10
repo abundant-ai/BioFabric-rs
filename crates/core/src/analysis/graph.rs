@@ -83,9 +83,6 @@ pub fn highest_degree_node(network: &Network) -> Option<NodeId> {
 /// Return all nodes sorted by degree (descending), with lexicographic
 /// tie-breaking for reproducibility.
 ///
-/// This is the foundation of the default layout algorithm: start BFS
-/// from the highest-degree node.
-///
 /// # Returns
 /// Vector of `(NodeId, degree)` pairs sorted by degree descending,
 /// then by node name ascending.
@@ -94,24 +91,13 @@ pub fn nodes_by_degree(network: &Network) -> Vec<(NodeId, usize)> {
         todo!()
     }
 
-/// Compute a topological ordering of a directed network (Kahn's algorithm).
+/// Compute a topological ordering of a directed network.
 ///
 /// Returns `Some(order)` if the network is a DAG, `None` if it contains a
 /// cycle. Only considers directed edges (`link.directed == Some(true)`);
 /// undirected and shadow links are ignored.
 ///
-/// ## Algorithm
-///
-/// 1. Compute in-degree for each node (from directed, non-shadow edges)
-/// 2. Seed the queue with all zero-in-degree nodes (sorted for determinism)
-/// 3. Pop from queue, append to result, decrement in-degrees of successors
-/// 4. If result length == node count, it's a valid topo order; otherwise cycle
-///
-/// ## Compression
-///
-/// When `compress` is true, nodes at the same "level" (distance from sources)
-/// are grouped together. The returned order still lists every node once, but
-/// nodes within a level are sorted by degree descending.
+/// When `compress` is true, nodes at the same level are grouped together.
 ///
 pub fn topological_sort(network: &Network, compress: bool) -> Option<Vec<NodeId>> {
         todo!()
@@ -150,31 +136,4 @@ mod tests {
     }
 
     // TODO: Enable tests once algorithms are implemented
-    //
-    // #[test]
-    // fn test_bfs_order() {
-    //     let network = create_test_network();
-    //     let order = bfs(&network, &NodeId::new("B"));
-    //     assert_eq!(order.len(), 4);
-    //     assert_eq!(order[0], NodeId::new("B")); // Start node first
-    // }
-    //
-    // #[test]
-    // fn test_connected_components_single() {
-    //     let network = create_test_network();
-    //     let components = connected_components(&network);
-    //     assert_eq!(components.len(), 1);
-    //     assert_eq!(components[0].len(), 4);
-    // }
-    //
-    // #[test]
-    // fn test_connected_components_multiple() {
-    //     let mut network = Network::new();
-    //     network.add_link(Link::new("A", "B", "r"));
-    //     network.add_link(Link::new("C", "D", "r"));
-    //     network.add_lone_node("E");
-    //     
-    //     let components = connected_components(&network);
-    //     assert_eq!(components.len(), 3);
-    // }
 }

@@ -80,25 +80,14 @@ impl LinkGroupIndex {
 // ============================================================================
 
 /// Composite sort key for a single link during edge layout.
+///
+/// Used to determine the column ordering of edges. Implements `Ord`
+/// to define the canonical edge sort order.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LinkSortKey {
-    /// The "anchor" row.
-    pub anchor_row: usize,
-
-    /// Whether this is a shadow link.
-    pub is_shadow: bool,
-
-    /// Ordinal of the link group within the canonical group ordering.
-    pub group_ordinal: usize,
-
-    /// The "far" row.
-    pub far_row: usize,
-
-    /// Directionality ordinal.
-    pub direction_ordinal: u8,
-
-    /// Relation name (final tie-breaker).
-    pub relation: String,
+    // Internal fields — agent must determine the sort key structure
+    // from the reference implementation.
+    _opaque: (),
 }
 
 impl LinkSortKey {
@@ -198,62 +187,3 @@ impl Default for ColumnAssigner {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_column_assigner_regular_only() {
-        let mut ca = ColumnAssigner::new();
-        assert_eq!(ca.assign_regular(), (0, 0));
-        assert_eq!(ca.assign_regular(), (1, 1));
-        assert_eq!(ca.assign_regular(), (2, 2));
-        assert_eq!(ca.column_count(), 3);
-        assert_eq!(ca.column_count_no_shadows(), 3);
-    }
-
-    #[test]
-    fn test_column_assigner_mixed() {
-        let mut ca = ColumnAssigner::new();
-        // Regular link at col 0 / no-shadow col 0
-        assert_eq!(ca.assign_regular(), (0, 0));
-        // Shadow link at col 1 / no no-shadow col
-        assert_eq!(ca.assign_shadow(), 1);
-        // Regular link at col 2 / no-shadow col 1
-        assert_eq!(ca.assign_regular(), (2, 1));
-        // Shadow link at col 3
-        assert_eq!(ca.assign_shadow(), 3);
-
-        assert_eq!(ca.column_count(), 4);
-        assert_eq!(ca.column_count_no_shadows(), 2);
-    }
-
-    #[test]
-    fn test_link_sort_key_ordering() {
-        let link_regular = Link::new("A", "B", "r1");
-        let link_shadow = Link::with_shadow("A", "B", "r1", true);
-
-        // Regular link: anchor=top_row=0, far=1
-        let key_reg = LinkSortKey::new(0, 1, &link_regular, 0);
-        // Shadow link: anchor=bottom_row=1, far=0
-        let key_shd = LinkSortKey::new(0, 1, &link_shadow, 0);
-
-        // Regular's anchor (0) < shadow's anchor (1), so regular comes first
-        assert!(key_reg < key_shd);
-    }
-
-    #[test]
-    fn test_shadow_before_regular_at_same_anchor() {
-        // Scenario: shadow anchored at row 5, regular also anchored at row 5
-        let link_regular = Link::new("X", "Y", "r1");
-        let link_shadow = Link::with_shadow("X", "Y", "r1", true);
-
-        // Regular: source_row=5, target_row=10 -> anchor=5 (top)
-        let key_reg = LinkSortKey::new(5, 10, &link_regular, 0);
-        // Shadow: source_row=0, target_row=5 -> anchor=5 (bottom for shadow)
-        let key_shd = LinkSortKey::new(0, 5, &link_shadow, 0);
-
-        // Same anchor row -> shadow comes first
-        assert!(key_shd < key_reg);
-    }
-}
