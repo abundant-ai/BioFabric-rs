@@ -54,10 +54,7 @@ pub enum CyclePosition {
 impl CyclePosition {
     /// Convert to the single-character code used in relation names.
     pub fn code(&self) -> String {
-        match self {
-            CyclePosition::Correct => "C".to_string(),
-            CyclePosition::Ordinal(i) => i.to_string(),
-        }
+        todo!()
     }
 }
 
@@ -72,8 +69,8 @@ impl CyclePosition {
 ///
 /// A relation string like `"CC"`, `"01"`, `"C2"`, etc.
 pub fn cycle_relation(source_pos: CyclePosition, target_pos: CyclePosition) -> String {
-    format!("{}{}", source_pos.code(), target_pos.code())
-}
+        todo!()
+    }
 
 /// Map from node ID to its cycle position.
 ///
@@ -93,35 +90,19 @@ impl CyclePositionMap {
     /// - Incorrect cases (4–9): nodes get `CyclePosition::Ordinal(i)`
     ///   where `i` is their index within the cycle/path node list
     pub fn from_cycles(cycles: &AlignmentCycles) -> Self {
-        let mut positions = HashMap::new();
-
-        for entry in &cycles.entries {
-            if entry.case.is_correct() {
-                for node in &entry.nodes {
-                    positions.insert(node.clone(), CyclePosition::Correct);
-                }
-            } else {
-                for (i, node) in entry.nodes.iter().enumerate() {
-                    positions.insert(node.clone(), CyclePosition::Ordinal(i));
-                }
-            }
-        }
-
-        Self { positions }
+        todo!()
     }
 
     /// Get the cycle position for a node.
     pub fn get(&self, node: &NodeId) -> Option<CyclePosition> {
-        self.positions.get(node).copied()
+        todo!()
     }
 
     /// Build the relation name for an edge between two nodes.
     ///
     /// Returns `None` if either node is not in the position map.
     pub fn relation_for_edge(&self, source: &NodeId, target: &NodeId) -> Option<String> {
-        let src_pos = self.get(source)?;
-        let tgt_pos = self.get(target)?;
-        Some(cycle_relation(src_pos, tgt_pos))
+        todo!()
     }
 }
 

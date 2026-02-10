@@ -79,21 +79,7 @@ impl LayoutBuildData {
         has_shadows: bool,
         layout_mode: LayoutMode,
     ) -> Self {
-        let node_to_row: HashMap<NodeId, usize> = node_order
-            .iter()
-            .enumerate()
-            .map(|(row, id)| (id.clone(), row))
-            .collect();
-
-        Self {
-            network,
-            node_order,
-            node_to_row,
-            has_shadows,
-            layout_mode,
-            link_group_index: None,
-            alignment_data: None,
-        }
+        todo!()
     }
 
     /// Create build data with alignment metadata attached.
@@ -104,9 +90,7 @@ impl LayoutBuildData {
         layout_mode: LayoutMode,
         alignment_data: AlignmentBuildData,
     ) -> Self {
-        let mut bd = Self::new(network, node_order, has_shadows, layout_mode);
-        bd.alignment_data = Some(alignment_data);
-        bd
+        todo!()
     }
 
     /// Look up the row for a node.

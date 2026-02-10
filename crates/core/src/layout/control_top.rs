@@ -114,13 +114,7 @@ impl ControlTopLayout {
     /// `getSrcNode()` from all links. In Rust, we only look at non-shadow
     /// links since shadows have swapped source/target.
     fn find_control_nodes(network: &Network) -> HashSet<NodeId> {
-        let mut ctrl = HashSet::new();
-        for link in network.links() {
-            if !link.is_shadow {
-                ctrl.insert(link.source.clone());
-            }
-        }
-        ctrl
+        todo!()
     }
 
     /// Find control nodes including shadow link sources.
@@ -130,11 +124,7 @@ impl ControlTopLayout {
     /// also become control nodes. Some control ordering modes (IntraDegree)
     /// need this broader set to match Java behavior.
     fn find_control_nodes_with_shadows(network: &Network) -> HashSet<NodeId> {
-        let mut ctrl = HashSet::new();
-        for link in network.links() {
-            ctrl.insert(link.source.clone());
-        }
-        ctrl
+        todo!()
     }
 
     /// Compute degree for each node from non-shadow links.
@@ -143,17 +133,7 @@ impl ControlTopLayout {
     /// and target for each link. We only count non-shadow links to match
     /// the Java behavior (shadows don't exist at node-layout time in Java).
     fn compute_degree(network: &Network) -> HashMap<NodeId, usize> {
-        let mut deg: HashMap<NodeId, usize> = HashMap::new();
-        for id in network.node_ids() {
-            deg.insert(id.clone(), 0);
-        }
-        for link in network.links() {
-            if !link.is_shadow {
-                *deg.entry(link.source.clone()).or_insert(0) += 1;
-                *deg.entry(link.target.clone()).or_insert(0) += 1;
-            }
-        }
-        deg
+        todo!()
     }
 
     /// Order all nodes by degree descending, then name ascending.
@@ -185,29 +165,7 @@ impl ControlTopLayout {
     ///
     /// So `allNodeOrder` gives: degree DESC, then among ties: name DESCENDING.
     fn all_node_order(network: &Network, degree: &HashMap<NodeId, usize>) -> Vec<NodeId> {
-        let mut nodes: Vec<NodeId> = network
-            .node_ids()
-            .filter(|id| !network.lone_nodes().contains(*id))
-            .cloned()
-            .collect();
-
-        // Java NodeDegree.compareTo: degree ASC, then name ASC
-        // After Collections.reverse(): entire list reversed
-        // So the resulting order is: degree DESC, and within same degree, name DESC
-        //
-        // But wait, let's be more precise. Let's say we have nodes with degrees:
-        // (A,3), (B,2), (C,2), (D,1)
-        // NodeDegree sorted (asc degree, asc name): (D,1), (B,2), (C,2), (A,3)
-        // After reverse: (A,3), (C,2), (B,2), (D,1)
-        // So within degree 2: C comes before B (reverse of alphabetical).
-        //
-        // This means: sort by degree DESC, then name DESC
-        nodes.sort_by(|a, b| {
-            let da = degree.get(a).copied().unwrap_or(0);
-            let db = degree.get(b).copied().unwrap_or(0);
-            db.cmp(&da).then_with(|| b.cmp(a))
-        });
-        nodes
+        todo!()
     }
 
     /// Order control nodes by intra-control-set link degree.
@@ -222,65 +180,7 @@ impl ControlTopLayout {
         network: &Network,
         ctrl_set: &HashSet<NodeId>,
     ) -> Vec<NodeId> {
-        // Step 1: Collect ctrlLinks — links (including shadows) where target is in ctrlNodes.
-        // This matches Java: for (NetLink nextLink : links) { if (ctrlNodes.contains(nextLink.getTrgNode())) ctrlLinks.add(nextLink); }
-        let ctrl_links: Vec<_> = network
-            .links()
-            .filter(|link| ctrl_set.contains(&link.target))
-            .collect();
-
-        // Step 2: Compute degree per (node, relation) pair from ctrlLinks,
-        // counting both source and target (inOnly=false).
-        // Then sum across relations per node.
-        // This matches Java GraphSearcher.nodeDegree(false, ctrlLinks).
-        let mut node_rel_count: HashMap<(&NodeId, &str), usize> = HashMap::new();
-        for link in &ctrl_links {
-            // Source side
-            *node_rel_count
-                .entry((&link.source, &link.relation))
-                .or_insert(0) += 1;
-            // Target side
-            *node_rel_count
-                .entry((&link.target, &link.relation))
-                .or_insert(0) += 1;
-        }
-
-        // Sum across relations per node
-        let mut intra_degree: HashMap<&NodeId, usize> = HashMap::new();
-        for ((node, _rel), &count) in &node_rel_count {
-            *intra_degree.entry(node).or_insert(0) += count;
-        }
-
-        // Step 3: Sort by degree ASC, then name ASC (matching Java NodeDegree.compareTo
-        // which is used in TreeSet<NodeDegree>). Only nodes that appear in intra_degree
-        // (i.e., have at least one ctrlLink endpoint) are included.
-        let mut degree_ordered: Vec<NodeId> = intra_degree
-            .keys()
-            .map(|&n| n.clone())
-            .collect();
-        degree_ordered.sort_by(|a, b| {
-            let da = intra_degree.get(a).copied().unwrap_or(0);
-            let db = intra_degree.get(b).copied().unwrap_or(0);
-            da.cmp(&db).then_with(|| a.cmp(b))
-        });
-
-        // Step 4: Add remaining ctrl nodes not in the degree list (zero intra-degree).
-        // Java: ctrlNodes.removeAll(retval); retval.addAll(ctrlNodes);
-        // ctrlNodes is a SortedSet (TreeSet), so remaining are added in name-ascending order.
-        let in_result: HashSet<NodeId> = degree_ordered.iter().cloned().collect();
-        let mut remaining: Vec<NodeId> = ctrl_set
-            .iter()
-            .filter(|n| !in_result.contains(n))
-            .cloned()
-            .collect();
-        remaining.sort(); // TreeSet natural order = name ascending
-        degree_ordered.extend(remaining);
-
-        // Step 5: Reverse the entire list.
-        // Java: Collections.reverse(retval);
-        degree_ordered.reverse();
-
-        degree_ordered
+        todo!()
     }
 
     /// Extract a sublist from `dfo` containing only nodes in `node_set`,
@@ -288,10 +188,7 @@ impl ControlTopLayout {
     ///
     /// Matches Java `listToSublist()`.
     fn list_to_sublist(node_set: &HashSet<NodeId>, dfo: &[NodeId]) -> Vec<NodeId> {
-        dfo.iter()
-            .filter(|n| node_set.contains(n))
-            .cloned()
-            .collect()
+        todo!()
     }
 
     /// Order control nodes using partial order (topological sort of control subgraph).
@@ -303,136 +200,12 @@ impl ControlTopLayout {
         dfo: &[NodeId],
         degree: &HashMap<NodeId, usize>,
     ) -> Vec<NodeId> {
-        // Get the ordered control nodes by degree
-        let ctrl_nodes = Self::list_to_sublist(ctrl_set, dfo);
-
-        // Build row mapping for cycle-breaking heuristic
-        let node_to_row: HashMap<&NodeId, usize> = ctrl_nodes
-            .iter()
-            .enumerate()
-            .map(|(i, n)| (n, i))
-            .collect();
-
-        // Find links between control nodes (non-shadow only)
-        let ctrl_links: Vec<_> = network
-            .links()
-            .filter(|link| {
-                !link.is_shadow
-                    && ctrl_set.contains(&link.source)
-                    && ctrl_set.contains(&link.target)
-            })
-            .collect();
-
-        // Separate into down-links (src_row < tgt_row) and up-links
-        let mut down_links = Vec::new();
-        let mut up_links = Vec::new();
-
-        for link in &ctrl_links {
-            let src_row = node_to_row.get(&link.source).copied().unwrap_or(0);
-            let tgt_row = node_to_row.get(&link.target).copied().unwrap_or(0);
-            if link.source == link.target {
-                // auto-feed, skip
-            } else if src_row < tgt_row {
-                down_links.push(*link);
-            } else {
-                up_links.push(*link);
-            }
-        }
-
-        // Sort up_links deterministically (by src_row, tgt_row, relation)
-        up_links.sort_by(|a, b| {
-            let ar = node_to_row.get(&a.source).copied().unwrap_or(0);
-            let br = node_to_row.get(&b.source).copied().unwrap_or(0);
-            ar.cmp(&br)
-                .then_with(|| {
-                    let at = node_to_row.get(&a.target).copied().unwrap_or(0);
-                    let bt = node_to_row.get(&b.target).copied().unwrap_or(0);
-                    at.cmp(&bt)
-                })
-                .then_with(|| a.relation.cmp(&b.relation))
-        });
-
-        // Build DAG from down-links, try to add up-links that don't create cycles
-        let mut dag_edges: HashSet<(NodeId, NodeId)> = HashSet::new();
-        for link in &down_links {
-            dag_edges.insert((link.source.clone(), link.target.clone()));
-        }
-
-        for link in &up_links {
-            dag_edges.insert((link.source.clone(), link.target.clone()));
-            if Self::has_cycle(&ctrl_nodes, &dag_edges) {
-                dag_edges.remove(&(link.source.clone(), link.target.clone()));
-            }
-        }
-
-        // Topological sort of the DAG
-        let topo = Self::topo_sort_control(&ctrl_nodes, &dag_edges);
-
-        // Convert topo sort to partial ordering with degree-based ordering within levels
-        let mut result =
-            Self::topo_to_partial_ordering_by_degree(&topo, network, ctrl_set, degree);
-
-        // Add any remaining control nodes not in the result
-        let result_set: HashSet<NodeId> = result.iter().cloned().collect();
-        let mut remaining: Vec<NodeId> = ctrl_nodes
-            .iter()
-            .filter(|n| !result_set.contains(n))
-            .cloned()
-            .collect();
-        remaining.sort(); // TreeSet order = name ascending
-        result.extend(remaining);
-
-        result
+        todo!()
     }
 
     /// Check if the control subgraph has a cycle using DFS.
     fn has_cycle(nodes: &[NodeId], edges: &HashSet<(NodeId, NodeId)>) -> bool {
-        let node_set: HashSet<&NodeId> = nodes.iter().collect();
-        let mut adj: HashMap<&NodeId, Vec<&NodeId>> = HashMap::new();
-        for (src, tgt) in edges {
-            if node_set.contains(src) && node_set.contains(tgt) {
-                adj.entry(src).or_default().push(tgt);
-            }
-        }
-
-        // Standard DFS cycle detection
-        let mut white: HashSet<&NodeId> = node_set.clone();
-        let mut gray: HashSet<&NodeId> = HashSet::new();
-
-        fn dfs_cycle<'a>(
-            node: &'a NodeId,
-            adj: &HashMap<&'a NodeId, Vec<&'a NodeId>>,
-            white: &mut HashSet<&'a NodeId>,
-            gray: &mut HashSet<&'a NodeId>,
-            black: &mut HashSet<&'a NodeId>,
-        ) -> bool {
-            white.remove(node);
-            gray.insert(node);
-            if let Some(neighbors) = adj.get(node) {
-                for &next in neighbors {
-                    if gray.contains(next) {
-                        return true;
-                    }
-                    if white.contains(next) && dfs_cycle(next, adj, white, gray, black) {
-                        return true;
-                    }
-                }
-            }
-            gray.remove(node);
-            black.insert(node);
-            false
-        }
-
-        let mut black: HashSet<&NodeId> = HashSet::new();
-        let starting: Vec<&NodeId> = white.iter().cloned().collect();
-        for node in starting {
-            if white.contains(node) {
-                if dfs_cycle(node, &adj, &mut white, &mut gray, &mut black) {
-                    return true;
-                }
-            }
-        }
-        false
+        todo!()
     }
 
     /// Topological sort of control nodes using Kahn's algorithm.
@@ -441,64 +214,7 @@ impl ControlTopLayout {
         nodes: &[NodeId],
         edges: &HashSet<(NodeId, NodeId)>,
     ) -> HashMap<NodeId, usize> {
-        let node_set: HashSet<&NodeId> = nodes.iter().collect();
-        let mut in_degree: HashMap<&NodeId, usize> = HashMap::new();
-        for n in &node_set {
-            in_degree.insert(*n, 0);
-        }
-        for (src, tgt) in edges {
-            if node_set.contains(src) && node_set.contains(tgt) {
-                *in_degree.entry(tgt).or_insert(0) += 1;
-            }
-        }
-
-        let mut queue: VecDeque<&NodeId> = VecDeque::new();
-        let mut zeros: Vec<&NodeId> = in_degree
-            .iter()
-            .filter(|(_, &d)| d == 0)
-            .map(|(&id, _)| id)
-            .collect();
-        zeros.sort();
-        for z in zeros {
-            queue.push_back(z);
-        }
-
-        let mut result: HashMap<NodeId, usize> = HashMap::new();
-        let mut level = 0;
-
-        while !queue.is_empty() {
-            let level_size = queue.len();
-            let mut level_nodes: Vec<&NodeId> = Vec::new();
-            for _ in 0..level_size {
-                let node = queue.pop_front().unwrap();
-                level_nodes.push(node);
-            }
-
-            for node in &level_nodes {
-                result.insert((*node).clone(), level);
-            }
-
-            let mut next_zeros: Vec<&NodeId> = Vec::new();
-            for node in &level_nodes {
-                for (src, tgt) in edges {
-                    if src == *node && node_set.contains(tgt) {
-                        let deg = in_degree.get_mut(tgt).unwrap();
-                        *deg -= 1;
-                        if *deg == 0 {
-                            next_zeros.push(tgt);
-                        }
-                    }
-                }
-            }
-            next_zeros.sort();
-            for z in next_zeros {
-                queue.push_back(z);
-            }
-
-            level += 1;
-        }
-
-        result
+        todo!()
     }
 
     /// Convert topo sort to partial ordering, with degree-based ordering within levels.
@@ -512,33 +228,7 @@ impl ControlTopLayout {
         ctrl_set: &HashSet<NodeId>,
         degree: &HashMap<NodeId, usize>,
     ) -> Vec<NodeId> {
-        // Invert: level -> list of nodes
-        let mut level_map: std::collections::BTreeMap<usize, Vec<NodeId>> =
-            std::collections::BTreeMap::new();
-        for (node, &level) in topo {
-            level_map.entry(level).or_default().push(node.clone());
-        }
-
-        // Build a degree set from ALL links (matching Java `nodeDegreeSet(allLinks, ...)`)
-        // The Java code passes `links` (all links) not just ctrl links
-        let mut result = Vec::new();
-        for (_level, mut nodes) in level_map {
-            // Sort by degree ascending then name ascending (matching Java NodeDegree order)
-            // Then reverse to get degree descending, name descending within a level
-            // Actually, Java `nodesByDegree` filters nodes against the sorted set, preserving set order.
-            // Then `Collections.reverse()` reverses the result.
-            // NodeDegree natural order: degree ASC, name ASC
-            // After `nodesByDegree` filters: degree ASC, name ASC
-            // After `Collections.reverse()`: degree DESC, name DESC within same degree
-            nodes.sort_by(|a, b| {
-                let da = degree.get(a).copied().unwrap_or(0);
-                let db = degree.get(b).copied().unwrap_or(0);
-                da.cmp(&db).then_with(|| a.cmp(b))
-            });
-            nodes.reverse();
-            result.extend(nodes);
-        }
-        result
+        todo!()
     }
 
     /// BFS-based target ordering.
@@ -553,87 +243,7 @@ impl ControlTopLayout {
         network: &Network,
         degree: &HashMap<NodeId, usize>,
     ) -> Vec<NodeId> {
-        // Build BFS starting from ctrl_list
-        // Java: breadthSearch(ctrlList, relCollapse=false, monitor)
-        // This does:
-        //   1. byDeg = nodeDegreeOrder(false) reversed = degree DESC, name DESC
-        //   2. toProcess = byDeg with startNodes moved to front
-        //   3. BFS using outEdges (undirected: both directions)
-        //   4. Neighbors visited in byDeg order
-
-        // Build degree-ordered list (degree DESC, name DESC) matching allNodeOrder
-        let by_deg = Self::all_node_order_from_degree(network, degree);
-
-        // Build toProcess: startNodes first, then rest in degree order
-        let start_set: HashSet<NodeId> = ctrl_list.iter().cloned().collect();
-        let mut to_process: Vec<NodeId> = ctrl_list.to_vec();
-        for node in &by_deg {
-            if !start_set.contains(node) {
-                to_process.push(node.clone());
-            }
-        }
-
-        // Build adjacency map for BFS (non-shadow links only, undirected traversal)
-        let mut out_edges: HashMap<NodeId, HashSet<NodeId>> = HashMap::new();
-        for link in network.links() {
-            if link.is_shadow {
-                continue;
-            }
-            // For undirected links: both directions
-            // For directed links: only src->tgt (matching Java calcOutboundEdges behavior)
-            out_edges
-                .entry(link.source.clone())
-                .or_default()
-                .insert(link.target.clone());
-            if link.directed != Some(true) {
-                out_edges
-                    .entry(link.target.clone())
-                    .or_default()
-                    .insert(link.source.clone());
-            }
-        }
-
-        // BFS
-        let mut visited: HashSet<NodeId> = HashSet::new();
-        let mut bfs_order: Vec<NodeId> = Vec::new();
-
-        while !to_process.is_empty() {
-            let start = to_process.remove(0);
-            if visited.contains(&start) {
-                continue;
-            }
-            let mut queue: VecDeque<NodeId> = VecDeque::new();
-            queue.push_back(start);
-
-            while let Some(curr) = queue.pop_front() {
-                if visited.contains(&curr) {
-                    continue;
-                }
-                visited.insert(curr.clone());
-                bfs_order.push(curr.clone());
-
-                // Get neighbors, visit in by_deg order
-                if let Some(neighbors) = out_edges.get(&curr) {
-                    for next in &by_deg {
-                        if neighbors.contains(next) && !visited.contains(next) {
-                            queue.push_back(next.clone());
-                        }
-                    }
-                }
-            }
-
-            // Remove visited from toProcess
-            to_process.retain(|n| !visited.contains(n));
-        }
-
-        // Build result: ctrl_list first, then non-control nodes from bfs_order
-        let mut result: Vec<NodeId> = ctrl_list.to_vec();
-        for node in bfs_order {
-            if !ctrl_set.contains(&node) {
-                result.push(node);
-            }
-        }
-        result
+        todo!()
     }
 
     /// Helper: all_node_order but takes pre-computed degree map
@@ -641,17 +251,7 @@ impl ControlTopLayout {
         network: &Network,
         degree: &HashMap<NodeId, usize>,
     ) -> Vec<NodeId> {
-        let mut nodes: Vec<NodeId> = network
-            .node_ids()
-            .filter(|id| !network.lone_nodes().contains(*id))
-            .cloned()
-            .collect();
-        nodes.sort_by(|a, b| {
-            let da = degree.get(a).copied().unwrap_or(0);
-            let db = degree.get(b).copied().unwrap_or(0);
-            db.cmp(&da).then_with(|| b.cmp(a))
-        });
-        nodes
+        todo!()
     }
 }
 
@@ -662,141 +262,11 @@ impl NodeLayout for ControlTopLayout {
         _params: &LayoutParams,
         _monitor: &dyn ProgressMonitor,
     ) -> LayoutResult<Vec<NodeId>> {
-        // Compute degree from non-shadow links
-        let degree = Self::compute_degree(network);
-
-        // For FixedList mode: the control set is ALL source nodes (same as other modes),
-        // not just the user-specified subset. The fixed list specifies the ORDER of some
-        // control nodes; remaining control nodes are appended in natural (sorted) order.
-        // For other modes with explicit control_nodes: use only the specified set.
-        //
-        // For IntraDegree mode: Java's controlNodes() operates on rbd.getLinks() which
-        // includes shadow links, so shadow sources (original targets) also become control
-        // nodes. We use find_control_nodes_with_shadows() for this case.
-        let ctrl_set: HashSet<NodeId> = if self.config.control_order == ControlOrder::FixedList {
-            // Java: controlNodes() collects getSrcNode() from all links
-            Self::find_control_nodes(network)
-        } else if !self.config.control_nodes.is_empty() {
-            // If control_nodes provided but not FixedList mode, use them as the set
-            self.config.control_nodes.iter().cloned().collect()
-        } else if self.config.control_order == ControlOrder::IntraDegree {
-            // IntraDegree: include shadow sources to match Java behavior
-            Self::find_control_nodes_with_shadows(network)
-        } else {
-            // Auto-detect: all source nodes of non-shadow links
-            Self::find_control_nodes(network)
-        };
-
-        if ctrl_set.is_empty() {
-            return Err(LayoutError::CriteriaNotMet(
-                "No control nodes found".into(),
-            ));
-        }
-
-        // Compute all-node degree order (degree DESC, name DESC)
-        let dfo = Self::all_node_order(network, &degree);
-
-        // Order control nodes based on mode
-        let ctrl_list: Vec<NodeId> = match self.config.control_order {
-            ControlOrder::DegreeOnly => {
-                // Filter allNodeOrder to control set
-                Self::list_to_sublist(&ctrl_set, &dfo)
-            }
-            ControlOrder::PartialOrder => {
-                Self::control_sort_partial_order(network, &ctrl_set, &dfo, &degree)
-            }
-            ControlOrder::FixedList => {
-                // Start with the user-specified order, then append remaining
-                // control nodes in sorted order (matching Java's TreeSet<NetNode>).
-                let mut list = self.config.control_nodes.clone();
-                let fixed_set: HashSet<NodeId> = list.iter().cloned().collect();
-                let mut remaining: Vec<NodeId> = ctrl_set
-                    .iter()
-                    .filter(|n| !fixed_set.contains(n))
-                    .cloned()
-                    .collect();
-                remaining.sort(); // TreeSet natural order = name ascending
-                list.extend(remaining);
-                list
-            }
-            ControlOrder::IntraDegree => {
-                Self::control_sort_intra_degree_only(network, &ctrl_set)
-            }
-            ControlOrder::MedianTargetDegree => {
-                // Order by median degree of targets
-                // For now, use degree-only as fallback
-                Self::list_to_sublist(&ctrl_set, &dfo)
-            }
-        };
-
-        // Order target nodes based on mode
-        let node_order: Vec<NodeId> = match self.config.target_order {
-            TargetOrder::TargetDegree => {
-                // Targets ordered by degree (same order as dfo, filtered to non-control)
-                let targ_set: HashSet<NodeId> = network
-                    .node_ids()
-                    .filter(|id| !ctrl_set.contains(*id) && !network.lone_nodes().contains(*id))
-                    .cloned()
-                    .collect();
-                let mut result = ctrl_list.clone();
-                result.extend(Self::list_to_sublist(&targ_set, &dfo));
-                result
-            }
-            TargetOrder::BreadthOrder => {
-                Self::order_targets_breadth(&ctrl_list, &ctrl_set, network, &degree)
-            }
-            TargetOrder::GrayCode | TargetOrder::DegreeOdometer => {
-                // Fallback to target degree for unimplemented modes
-                let targ_set: HashSet<NodeId> = network
-                    .node_ids()
-                    .filter(|id| !ctrl_set.contains(*id) && !network.lone_nodes().contains(*id))
-                    .cloned()
-                    .collect();
-                let mut result = ctrl_list.clone();
-                result.extend(Self::list_to_sublist(&targ_set, &dfo));
-                result
-            }
-        };
-
-        // Add lone nodes at the end, sorted by name (matching Java's TreeSet<NetNode>)
-        let mut lone: Vec<NodeId> = network.lone_nodes().iter().cloned().collect();
-        lone.sort();
-
-        let mut final_order = node_order;
-        let placed: HashSet<NodeId> = final_order.iter().cloned().collect();
-        for node in lone {
-            if !placed.contains(&node) {
-                final_order.push(node);
-            }
-        }
-
-        Ok(final_order)
+        todo!()
     }
 
     fn criteria_met(&self, network: &Network) -> LayoutResult<()> {
-        if !network.metadata.is_directed {
-            return Err(LayoutError::CriteriaNotMet(
-                "ControlTopLayout requires a fully directed network. \
-                 All links must have directed == Some(true)."
-                    .into(),
-            ));
-        }
-        if self.config.control_nodes.is_empty() {
-            return Err(LayoutError::CriteriaNotMet(
-                "ControlTopLayout requires at least one control node to be specified."
-                    .into(),
-            ));
-        }
-        // Verify all specified control nodes exist in the network
-        for node_id in &self.config.control_nodes {
-            if !network.contains_node(node_id) {
-                return Err(LayoutError::CriteriaNotMet(format!(
-                    "Control node '{}' not found in network",
-                    node_id
-                )));
-            }
-        }
-        Ok(())
+        todo!()
     }
 
     fn name(&self) -> &'static str {

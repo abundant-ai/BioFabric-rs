@@ -181,41 +181,19 @@ pub struct NodeGroupTag(pub String);
 impl NodeGroupTag {
     /// Build a tag from a node color and its incident edge types.
     pub fn from_parts(color: NodeColor, edge_types: &[EdgeType]) -> Self {
-        let color_char = match color {
-            NodeColor::Purple => "P",
-            NodeColor::Blue => "B",
-            NodeColor::Red => "R",
-        };
-        if edge_types.is_empty() {
-            return Self(format!("({}:0)", color_char));
-        }
-        let types_str: Vec<&str> = edge_types.iter().map(|t| t.short_code()).collect();
-        Self(format!("({}:{})", color_char, types_str.join("/")))
+        todo!()
     }
 }
 
 impl PartialOrd for NodeGroupTag {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
+        todo!()
     }
 }
 
 impl Ord for NodeGroupTag {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // Parse color priority: P=0, B=1, R=2 (matching Java's Purple < Blue < Red)
-        fn color_priority(tag: &str) -> u8 {
-            if tag.starts_with("(P:") {
-                0
-            } else if tag.starts_with("(B:") {
-                1
-            } else {
-                2
-            }
-        }
-
-        let cp_self = color_priority(&self.0);
-        let cp_other = color_priority(&other.0);
-        cp_self.cmp(&cp_other).then_with(|| self.0.cmp(&other.0))
+        todo!()
     }
 }
 
@@ -252,13 +230,7 @@ pub struct NodeGroupMap {
 impl NodeGroupMap {
     /// Build the node group map from a merged network.
     pub fn from_merged(merged: &MergedNetwork, _monitor: &dyn ProgressMonitor) -> Self {
-        Self::from_merged_with_mode(
-            merged,
-            PerfectNGMode::None,
-            None,
-            DEFAULT_JACCARD_THRESHOLD,
-            _monitor,
-        )
+        todo!()
     }
 
     /// Build the node group map from a merged network with a PerfectNG mode.
@@ -269,163 +241,24 @@ impl NodeGroupMap {
         jaccard_threshold: f64,
         _monitor: &dyn ProgressMonitor,
     ) -> Self {
-        // Build adjacency: for each node, collect incident edge types
-        let mut node_edge_types: HashMap<NodeId, BTreeSet<usize>> = HashMap::new();
-
-        // Initialize all nodes
-        for node_id in merged.node_colors.keys() {
-            node_edge_types.entry(node_id.clone()).or_default();
-        }
-
-        // Collect edge types for each node from the merged network's links
-        for (i, link) in merged.network.links_slice().iter().enumerate() {
-            if link.is_shadow {
-                continue; // Only count non-shadow links for group classification
-            }
-            let et = merged.edge_types[i];
-            let et_idx = EdgeType::all().iter().position(|&e| e == et).unwrap_or(0);
-
-            node_edge_types
-                .entry(link.source.clone())
-                .or_default()
-                .insert(et_idx);
-            node_edge_types
-                .entry(link.target.clone())
-                .or_default()
-                .insert(et_idx);
-        }
-
-        // Group nodes by (color, edge_type_set, correctness) -> tag
-        let mut tag_to_nodes: HashMap<NodeGroupTag, Vec<NodeId>> = HashMap::new();
-        let mut tag_to_meta: HashMap<NodeGroupTag, (NodeColor, Vec<EdgeType>)> = HashMap::new();
-
-        for (node_id, et_indices) in &node_edge_types {
-            let color = merged.node_colors.get(node_id).copied().unwrap_or(NodeColor::Purple);
-            let edge_types_sorted: Vec<EdgeType> = et_indices
-                .iter()
-                .map(|&idx| EdgeType::all()[idx])
-                .collect();
-
-            let mut tag_str = NodeGroupTag::from_parts(color, &edge_types_sorted).0;
-
-            if mode != PerfectNGMode::None {
-                let is_correct = match mode {
-                    PerfectNGMode::NodeCorrectness => merged
-                        .merged_to_correct
-                        .as_ref()
-                        .and_then(|m| m.get(node_id))
-                        .copied()
-                        .unwrap_or(false),
-                    PerfectNGMode::JaccardSimilarity => jaccard_correct
-                        .and_then(|m| m.get(node_id))
-                        .copied()
-                        .unwrap_or(false),
-                    PerfectNGMode::None => false,
-                };
-                if let Some(pos) = tag_str.rfind(')') {
-                    let suffix = if is_correct { "/1" } else { "/0" };
-                    tag_str.insert_str(pos, suffix);
-                }
-            }
-
-            let tag = NodeGroupTag(tag_str);
-
-            tag_to_nodes
-                .entry(tag.clone())
-                .or_default()
-                .push(node_id.clone());
-            tag_to_meta
-                .entry(tag)
-                .or_insert((color, edge_types_sorted));
-        }
-
-        let order_list: &[(&str, &str)] = if mode == PerfectNGMode::None {
-            NODE_GROUP_ANNOTS
-        } else {
-            NODE_GROUP_ANNOTS_PERFECT
-        };
-
-        // Build groups in Java's canonical order (including empty groups)
-        let mut groups = Vec::new();
-        let mut node_to_group = HashMap::new();
-
-        for (group_idx, (tag_str, color_name)) in order_list.iter().enumerate() {
-            let tag = NodeGroupTag((*tag_str).to_string());
-            let (color, edge_types) = tag_to_meta.get(&tag).cloned().unwrap_or_else(|| {
-                let inferred = if tag_str.starts_with("(P:") {
-                    NodeColor::Purple
-                } else if tag_str.starts_with("(B:") {
-                    NodeColor::Blue
-                } else {
-                    NodeColor::Red
-                };
-                (inferred, Vec::new())
-            });
-
-            let mut members = tag_to_nodes.remove(&tag).unwrap_or_default();
-            members.sort();
-
-            for node_id in &members {
-                node_to_group.insert(node_id.clone(), group_idx);
-            }
-
-            groups.push(NodeGroup {
-                tag,
-                color,
-                edge_types,
-                members,
-                annot_color: (*color_name).to_string(),
-            });
-        }
-
-        // Append any unexpected groups at the end to avoid dropping nodes
-        if !tag_to_nodes.is_empty() {
-            for (tag, mut members) in tag_to_nodes {
-                members.sort();
-                let group_idx = groups.len();
-                for node_id in &members {
-                    node_to_group.insert(node_id.clone(), group_idx);
-                }
-                groups.push(NodeGroup {
-                    tag,
-                    color: NodeColor::Purple,
-                    edge_types: Vec::new(),
-                    members,
-                    annot_color: "GrayBlue".to_string(),
-                });
-            }
-        }
-
-        NodeGroupMap {
-            groups,
-            node_to_group,
-            perfect_mode: mode,
-            jaccard_threshold,
-        }
+        todo!()
     }
 
     /// Total number of groups (including empty).
     pub fn group_count(&self) -> usize {
-        self.groups.len()
+        todo!()
     }
 
     /// Group index for a node.
     pub fn group_index(&self, node_id: &NodeId) -> Option<usize> {
-        self.node_to_group.get(node_id).copied()
+        todo!()
     }
 
     /// Compute the group ratio vector (fraction of nodes in each group).
     ///
     /// Used for NGS (Node Group Similarity) scoring.
     pub fn ratio_vector(&self) -> Vec<f64> {
-        let total: usize = self.groups.iter().map(|g| g.members.len()).sum();
-        if total == 0 {
-            return vec![0.0; self.groups.len()];
-        }
-        self.groups
-            .iter()
-            .map(|g| g.members.len() as f64 / total as f64)
-            .collect()
+        todo!()
     }
 
     /// Compute the link group ratio vector.
@@ -433,24 +266,6 @@ impl NodeGroupMap {
     /// For each edge type, counts the edges of that type and divides by total.
     /// Used for LGS (Link Group Similarity) scoring.
     pub fn link_ratio_vector(merged: &MergedNetwork) -> Vec<f64> {
-        let all_types = EdgeType::all();
-        let mut counts = vec![0usize; all_types.len()];
-        let mut total = 0usize;
-
-        for (i, link) in merged.network.links_slice().iter().enumerate() {
-            if link.is_shadow {
-                continue;
-            }
-            let et = merged.edge_types[i];
-            if let Some(idx) = all_types.iter().position(|&e| e == et) {
-                counts[idx] += 1;
-                total += 1;
-            }
-        }
-
-        if total == 0 {
-            return vec![0.0; all_types.len()];
-        }
-        counts.iter().map(|&c| c as f64 / total as f64).collect()
+        todo!()
     }
 }
