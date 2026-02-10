@@ -2,21 +2,7 @@
 //!
 //! Designed for networks with a hub-and-spoke pattern, where many "satellite"
 //! nodes connect to exactly one "hub" node. Groups satellite nodes around
-//! their respective hubs, ordering hubs by degree.
-//!
-//! ## Algorithm
-//!
-//! 1. Build degree map counting ALL links (including shadows)
-//! 2. Identify satellite nodes (nodes with exactly 1 unique neighbor)
-//! 3. Group satellites by their single neighbor (the "hub")
-//! 4. Order hubs by degree descending, then name ascending
-//! 5. For each hub: place hub first, then satellites (degree desc, name asc)
-//! 6. Remaining non-hub non-satellite nodes placed by degree desc, name asc
-//! 7. Lone nodes at end, sorted lexicographically
-//!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.layouts.WorldBankLayout`
+//! their respective hubs.
 
 use super::traits::{LayoutParams, LayoutResult, NodeLayout};
 use crate::model::{Network, NodeId};
@@ -53,8 +39,6 @@ impl NodeLayout for WorldBankLayout {
 
 impl WorldBankLayout {
     /// Invert a node->degree map into a degree->sorted-nodes map (descending degree).
-    ///
-    /// Java: `WorldBankLayout.invertCountMap()` — TreeMap(Collections.reverseOrder())
     fn invert_count_map(
         count_map: &HashMap<NodeId, usize>,
     ) -> BTreeMap<std::cmp::Reverse<usize>, BTreeSet<NodeId>> {
@@ -62,8 +46,6 @@ impl WorldBankLayout {
     }
 
     /// Flatten an inverted count map into a list of nodes.
-    ///
-    /// Java: `WorldBankLayout.flattenDaCount()`
     fn flatten_count_map(
         inv_map: &BTreeMap<std::cmp::Reverse<usize>, BTreeSet<NodeId>>,
     ) -> Vec<NodeId> {

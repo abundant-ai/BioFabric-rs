@@ -10,15 +10,15 @@
 //!
 //! ## Available Node Layouts
 //!
-//! | Layout | Description | Java Reference |
-//! |--------|-------------|----------------|
-//! | [`DefaultNodeLayout`] | BFS from highest-degree node | `DefaultLayout` |
-//! | [`NodeSimilarityLayout`] | Jaccard similarity ordering | `NodeSimilarityLayout` |
-//! | [`HierDAGLayout`] | Hierarchical DAG levels | `HierDAGLayout` |
-//! | [`NodeClusterLayout`] | Attribute-based clustering | `NodeClusterLayout` |
-//! | [`ControlTopLayout`] | Control nodes at top | `ControlTopLayout` |
-//! | [`SetLayout`] | Set membership (bipartite) | `SetLayout` |
-//! | [`WorldBankLayout`] | Hub-spoke grouping | `WorldBankLayout` |
+//! | Layout | Description |
+//! |--------|-------------|
+//! | [`DefaultNodeLayout`] | Default node ordering |
+//! | [`NodeSimilarityLayout`] | Similarity-based ordering |
+//! | [`HierDAGLayout`] | Hierarchical DAG levels |
+//! | [`NodeClusterLayout`] | Attribute-based clustering |
+//! | [`ControlTopLayout`] | Control nodes at top |
+//! | [`SetLayout`] | Set membership (bipartite) |
+//! | [`WorldBankLayout`] | Hub-spoke grouping |
 //!
 //! ## Layout Result
 //!

@@ -25,9 +25,8 @@
 //!
 //! ## References
 //!
-//! - Java: the combination of `BioFabricNetwork` + `FabricDisplayOptions`
-//!   constitutes a "session" in the Java codebase, though it's not a
-//!   single class. `FabricFactory` reads/writes the session XML.
+//! The combination of `Network` + `DisplayOptions` constitutes a "session".
+//! `FabricFactory` reads/writes the session XML.
 
 use crate::alignment::scoring::AlignmentScores;
 use crate::layout::result::NetworkLayout;
@@ -67,7 +66,7 @@ pub struct Session {
     /// When reading a BIF file, we capture the lines inside the
     /// `<plugInDataSets>` element verbatim so they can be re-emitted
     /// during a roundtrip write without needing to fully model every
-    /// possible Java plug-in.
+    /// possible plugin.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub plugin_data_lines: Vec<String>,
 }

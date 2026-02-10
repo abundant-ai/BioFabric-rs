@@ -4,11 +4,6 @@
 //! rows (node annotations) or columns (link annotations) in the BioFabric
 //! visualization.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.model.AnnotationSetImpl`
-//! - Java: `org.systemsbiology.biofabric.api.model.AnnotationSet`
-//! - Java: `org.systemsbiology.biofabric.api.model.Annot`
 
 use serde::{Deserialize, Serialize};
 
@@ -59,7 +54,7 @@ impl Annotation {
 
 /// An ordered collection of annotations (either all-node or all-link).
 ///
-/// Corresponds to `AnnotationSetImpl` in the Java implementation.
+/// A set of annotations.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AnnotationSet {
     annotations: Vec<Annotation>,

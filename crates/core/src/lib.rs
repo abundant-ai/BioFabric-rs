@@ -3,7 +3,7 @@
 
 //! # BioFabric
 //!
-//! See the project README and the original Java source for details.
+//! See the project README for details.
 
 pub mod alignment;
 pub mod analysis;

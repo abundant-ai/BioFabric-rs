@@ -15,10 +15,6 @@
 //! - **LGS** (Link Group Similarity): angular similarity of link group ratio vectors
 //! - **JS** (Jaccard Similarity): average Jaccard similarity of aligned node neighborhoods
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignmentScorer`
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.JaccardSimilarity`
 
 use super::merge::MergedNetwork;
 use crate::io::align::AlignmentMap;
@@ -68,7 +64,7 @@ impl AlignmentScores {
 
     /// Compute full evaluation scores given both main and perfect merged networks.
     ///
-    /// This is the complete implementation matching Java's NetworkAlignmentScorer.
+    /// This is the complete scoring implementation.
     pub fn with_full_evaluation(
         merged: &MergedNetwork,
         perfect_merged: &MergedNetwork,

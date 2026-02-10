@@ -10,7 +10,7 @@ use std::fmt;
 
 /// A link (edge) between two nodes in the network.
 ///
-/// Corresponds to `FabricLink` in the Java implementation.
+/// A link (edge) between two nodes.
 ///
 /// ## Shadow Links
 ///
@@ -101,9 +101,6 @@ impl Link {
     /// meaningful shadow. The caller (`Network::generate_shadows`) already
     /// skips feedback links, but this API makes the invariant explicit.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.processLinks_()` skips feedback links
     pub fn to_shadow(&self) -> Option<Self> {
         if self.is_feedback() {
             None
@@ -114,11 +111,9 @@ impl Link {
         }
     }
 
-    /// Case-insensitive relation comparison, matching Java BioFabric behavior.
+    /// Case-insensitive relation comparison.
     ///
-    /// The Java implementation consistently compares relation strings
-    /// case-insensitively (via `String.equalsIgnoreCase`). This helper
-    /// method centralizes that behavior.
+    /// Relation strings are compared case-insensitively.
     pub fn relation_eq(&self, other: &Link) -> bool {
         self.relation.eq_ignore_ascii_case(&other.relation)
     }
@@ -127,7 +122,7 @@ impl Link {
     ///
     /// A shadow pair consists of a regular link and its shadow copy, where
     /// the shadow has swapped source/target and `is_shadow = true`.
-    /// Relation comparison is case-insensitive (matching Java behavior).
+    /// Relation comparison is case-insensitive.
     ///
     /// For example, if this link is `A -> B (shadow=false)`, and other is
     /// `B -> A (shadow=true)`, they form a shadow pair.
@@ -143,7 +138,7 @@ impl Link {
     ///
     /// Two links are synonymous if they represent the same undirected edge,
     /// possibly with source and target swapped. Relation comparison is
-    /// case-insensitive (matching Java behavior).
+    /// case-insensitive.
     pub fn is_synonymous(&self, other: &Link) -> bool {
         if self == other {
             return true;

@@ -13,7 +13,6 @@
 //!
 //! ## References
 //!
-//! Replaces Java's `BTProgressMonitor`, `BackgroundWorker`, and `LoopReporter`.
 
 use std::fmt;
 
@@ -23,7 +22,7 @@ use std::fmt;
 
 /// Error indicating that an operation was cancelled by the user or caller.
 ///
-/// This is the Rust equivalent of Java's `AsynchExitRequestException`.
+/// Returned when an operation is cancelled by the caller.
 /// It is intentionally small and `Copy` so it can be cheaply returned
 /// from tight inner loops.
 #[derive(Debug, Clone, Copy)]
@@ -52,10 +51,6 @@ impl std::error::Error for CancelledError {}
 ///
 /// Monitors are `Send + Sync` so they can be shared across `rayon` threads
 /// when the `parallel` feature is enabled.
-///
-/// ## References
-///
-/// Replaces Java's `org.systemsbiology.biofabric.api.worker.BTProgressMonitor`.
 pub trait ProgressMonitor: Send + Sync {
     /// Set the total number of work units (for percentage calculation).
     fn set_total(&self, total: u64);
@@ -128,10 +123,6 @@ impl ProgressMonitor for NoopMonitor {
 /// The `start_frac` / `end_frac` parameters let you divide a larger
 /// operation into phases that each report a sub-range of the overall
 /// progress bar (e.g., phase 1 covers 0.0–0.5, phase 2 covers 0.5–1.0).
-///
-/// ## References
-///
-/// Replaces Java's `org.systemsbiology.biofabric.util.LoopReporter`.
 pub struct LoopReporter<'a> {
     monitor: &'a dyn ProgressMonitor,
     total: u64,

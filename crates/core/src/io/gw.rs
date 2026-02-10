@@ -3,7 +3,6 @@
 //! ## References
 //!
 //! - LEDA GW format: <http://www.algorithmic-solutions.info/leda_manual/GW.html>
-//! - Java implementation: `org.systemsbiology.biofabric.io.GWImportLoader`
 
 use super::{ImportStats, ParseError};
 use crate::model::Network;

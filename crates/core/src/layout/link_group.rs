@@ -1,18 +1,10 @@
 //! Link groups and column assignment for edge layout.
 //!
 //! A **link group** is a contiguous run of edges sharing the same relation type
-//! that are incident to the same node. The Java comparator
-//! (`DefaultFabricLinkLocater`) sorts edges using a multi-key scheme where link
-//! group membership is a primary sort key.
+//! that are incident to the same node.
 //!
 //! The [`ColumnAssigner`] tracks dual column numbering (shadow-on and shadow-off)
 //! during edge layout, so shadow toggle is O(1) in the renderer.
-//!
-//! ## References
-//!
-//! - Java: `BioFabricNetwork.ColumnAssign`
-//! - Java: `DefaultEdgeLayout.DefaultFabricLinkLocater` (comparator)
-//! - Java: `BioFabricNetwork.LinkGrouping` (link group data)
 
 use crate::model::{Link, NodeId};
 use std::cmp::Ordering;
@@ -23,14 +15,6 @@ use std::collections::HashMap;
 // ============================================================================
 
 /// A link group: a set of edges sharing the same relation and endpoint node.
-///
-/// In BioFabric's edge ordering, edges are first sorted by their "top" node
-/// (the node with the smaller row number), then by link group within that
-/// node, then by the "bottom" node, directionality, and relation.
-///
-/// ## References
-///
-/// - Java: `BioFabricNetwork.LinkGrouping`
 #[derive(Debug, Clone)]
 pub struct LinkGroup {
     /// The node that anchors this group (the "top" endpoint).
@@ -96,31 +80,21 @@ impl LinkGroupIndex {
 // ============================================================================
 
 /// Composite sort key for a single link during edge layout.
-///
-/// Encodes the multi-key comparator from Java's `DefaultFabricLinkLocater`:
-///
-/// | For regular links    | top_row → group_ordinal → bottom_row → direction → relation |
-/// | For shadow links     | bottom_row → group_ordinal → top_row → direction → relation |
-/// | Regular vs shadow    | Compare regular's top_row vs shadow's bottom_row; ties → shadow first |
-///
-/// By pre-computing these keys, the sort becomes a simple `Ord` comparison
-/// rather than ad-hoc multi-field logic in a closure.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LinkSortKey {
-    /// The "anchor" row: top_row for regular links, bottom_row for shadows.
+    /// The "anchor" row.
     pub anchor_row: usize,
 
-    /// Whether this is a shadow link. Shadows sort before regulars at the
-    /// same anchor row.
+    /// Whether this is a shadow link.
     pub is_shadow: bool,
 
     /// Ordinal of the link group within the canonical group ordering.
     pub group_ordinal: usize,
 
-    /// The "far" row: bottom_row for regular links, top_row for shadows.
+    /// The "far" row.
     pub far_row: usize,
 
-    /// Directionality ordinal: undirected=0, directed-down=1, directed-up=2.
+    /// Directionality ordinal.
     pub direction_ordinal: u8,
 
     /// Relation name (final tie-breaker).
@@ -142,47 +116,7 @@ impl LinkSortKey {
         link: &Link,
         group_ordinal: usize,
     ) -> Self {
-        let top_row = source_row.min(target_row);
-        let bottom_row = source_row.max(target_row);
-
-        let (anchor_row, far_row) = if link.is_shadow {
-            (bottom_row, top_row)
-        } else {
-            (top_row, bottom_row)
-        };
-
-        // Direction ordinal: undirected=0, directed-down=1, directed-up=2.
-        //
-        // IMPORTANT: In the Rust model, shadow links have FLIPPED source/target
-        // (from Link::to_shadow()). But in Java, shadow links keep the ORIGINAL
-        // source/target. The Java comparator (DefaultFabricLinkLocater.orderForNode)
-        // determines direction from the link's source_row vs target_row, which in
-        // Java are the ORIGINAL rows. To match Java, we must use the original
-        // direction for shadow links — i.e., invert the test for shadows.
-        let direction_ordinal = if link.is_shadow {
-            match link.directed {
-                None | Some(false) => 0,
-                // Shadow has flipped src/tgt; original direction is reversed:
-                // If target_row <= source_row, original was source→target going down
-                Some(true) if target_row <= source_row => 1,
-                Some(true) => 2,
-            }
-        } else {
-            match link.directed {
-                None | Some(false) => 0,
-                Some(true) if source_row <= target_row => 1, // directed down
-                Some(true) => 2, // directed up
-            }
-        };
-
-        Self {
-            anchor_row,
-            is_shadow: link.is_shadow,
-            group_ordinal,
-            far_row,
-            direction_ordinal,
-            relation: link.relation.clone(),
-        }
+        todo!()
     }
 }
 
@@ -206,10 +140,6 @@ impl PartialOrd for LinkSortKey {
 ///
 /// Maintains two column counters — one for "shadow-on" mode and one for
 /// "shadow-off" mode — so the renderer can toggle shadow display in O(1).
-///
-/// ## References
-///
-/// - Java: `BioFabricNetwork.ColumnAssign`
 #[derive(Debug, Clone)]
 pub struct ColumnAssigner {
     /// Next column number when shadow links are displayed.

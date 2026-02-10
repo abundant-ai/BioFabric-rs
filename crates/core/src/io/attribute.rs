@@ -27,9 +27,6 @@
 //! nodeB\tcluster_2\ttf\t0.82
 //! ```
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.io.AttributeLoader`
 
 use crate::io::ParseError;
 use crate::model::NodeId;
@@ -117,9 +114,7 @@ pub fn parse_reader<R: Read>(reader: BufReader<R>) -> Result<AttributeTable, Par
     //    d. Insert into node_attributes map
     // 3. Skip empty lines and comment lines (# prefix)
     //
-    // See Java: org.systemsbiology.biofabric.io.AttributeLoader
-    //
-    todo!("Implement attribute loader - see AttributeLoader.java")
+    todo!("Implement attribute loader")
 }
 
 /// Load attributes from a string.

@@ -25,7 +25,6 @@
 //!
 //! ## References
 //!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.*`
 //! - VISNAB paper: Desai, R.M., Longabaugh, W.J.R., Hayes, W.B. (2021).
 //!   BioFabric Visualization of Network Alignments. Springer, Cham.
 

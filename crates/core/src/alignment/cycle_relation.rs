@@ -29,10 +29,6 @@
 //! - `"01"` — Edge from the first to the second node of an incorrect path
 //! - `"10"` — Edge from the second node back to the first (in a cycle)
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.plugin.core.align.AlignCycleRelation`
-//! - Java: `AlignCycleEdgeLayout` (uses these relations for link annotations)
 
 use super::cycle::{AlignmentCyclePath, AlignmentCycles, CycleCase};
 use crate::model::NodeId;

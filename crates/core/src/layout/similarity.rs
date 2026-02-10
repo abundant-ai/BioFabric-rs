@@ -1,19 +1,7 @@
 //! Node similarity layout algorithm.
 //!
 //! This layout orders nodes by their structural similarity, with two modes:
-//!
-//! - **Resort**: Iteratively improves the default BFS layout by grouping nodes
-//!   with similar "connection shapes" (curve profiles) next to each other.
-//! - **Clustered**: Greedily chains nodes by Jaccard similarity of their
-//!   connection vectors, starting from the highest-degree node.
-//!
-//! Both modes start from the default BFS node order, refine it, then use the
-//! default edge layout on the refined order.
-//!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.layouts.NodeSimilarityLayout`
-//! - Jaccard index: <https://en.wikipedia.org/wiki/Jaccard_index>
+//! **Resort** and **Clustered**.
 
 use super::traits::{LayoutParams, LayoutResult, NodeLayout};
 use crate::model::{Network, NodeId};
@@ -40,10 +28,8 @@ pub enum SimilarityMode {
 #[derive(Debug, Clone)]
 pub struct NodeSimilarityLayout {
     mode: SimilarityMode,
-    // Resort params (Java: ResortParams)
     pass_count: usize,
     terminate_at_increase: bool,
-    // Cluster params (Java: ClusterParams)
     tolerance: f64,
     chain_length: usize,
 }
@@ -127,9 +113,7 @@ impl NodeLayout for NodeSimilarityLayout {
 // ============================================================================
 
 impl NodeSimilarityLayout {
-    /// Clustered layout: greedily chain nodes by Jaccard similarity.
-    ///
-    /// Ported from Java `doClusteredLayout()` / `doClusteredLayoutOrder()`.
+    /// Clustered layout implementation.
     fn do_clustered_layout(
         &self,
         network: &Network,
@@ -145,10 +129,7 @@ impl NodeSimilarityLayout {
 // ============================================================================
 
 impl NodeSimilarityLayout {
-    /// Resort layout: iteratively improve node ordering by grouping similar
-    /// connection shapes together.
-    ///
-    /// Ported from Java `doReorderLayout()`.
+    /// Resort layout implementation.
     fn do_resort_layout(
         &self,
         conn_vecs: &BTreeMap<usize, BTreeSet<usize>>,
@@ -159,8 +140,6 @@ impl NodeSimilarityLayout {
 }
 
 /// Intermediate data for resort passes.
-///
-/// Ported from Java `ClusterPrep`.
 struct ClusterPrep {
     num_rows: usize,
     /// Maps position (index into ordered list) -> value (original row index).
@@ -175,8 +154,6 @@ struct ClusterPrep {
 }
 
 /// Build the order-to-maps conversion.
-///
-/// Ported from Java `orderToMaps()`.
 fn order_to_maps(
     ordered: &[usize],
 ) -> (BTreeMap<usize, usize>, BTreeMap<usize, usize>) {
@@ -184,12 +161,6 @@ fn order_to_maps(
     }
 
 /// Calculate the shape curve for a node's connection vector.
-///
-/// Ported from Java `calcShapeCurve()`.
-///
-/// For a node with neighbors at certain original rows, maps each neighbor
-/// through old_to_new to get their current positions, sorts them, and assigns
-/// decreasing values: first position gets num_pts, second gets num_pts-1, etc.
 fn calc_shape_curve(
     neighbor_rows: &BTreeSet<usize>,
     old_to_new: &BTreeMap<usize, usize>,
@@ -198,34 +169,22 @@ fn calc_shape_curve(
     }
 
 /// Compute the average of a shape curve.
-///
-/// Ported from Java `curveAverage()`.
 fn curve_average(curve: &BTreeMap<usize, f64>) -> f64 {
         todo!()
     }
 
 /// Find bounding integers in a sorted set.
-///
-/// Ported from Java `DataUtil.boundingInts()`.
-/// Returns (lo, hi) where lo <= want <= hi.
-/// If want is in the set, lo == hi == want.
-/// If want is below minimum, lo == hi == minimum.
-/// If want is above maximum, lo == hi == maximum.
 #[allow(dead_code)]
 fn bounding_ints(vals: &BTreeSet<usize>, want: usize) -> Option<(usize, usize)> {
         todo!()
     }
 
 /// Interpolate a curve at a given x value.
-///
-/// Ported from Java `interpCurve()`.
 fn interp_curve(curve: &BTreeMap<usize, f64>, x_val: usize) -> f64 {
         todo!()
     }
 
 /// Calculate shape delta between two curves.
-///
-/// Ported from Java `calcShapeDeltaUsingCurveMaps()`.
 fn calc_shape_delta(
     curve1: &BTreeMap<usize, f64>,
     curve2: &BTreeMap<usize, f64>,
@@ -234,8 +193,6 @@ fn calc_shape_delta(
     }
 
 /// Calculate shape delta between two curves with pre-computed averages.
-///
-/// This avoids recomputing curve averages in tight loops.
 fn calc_shape_delta_with_avgs(
     curve1: &BTreeMap<usize, f64>,
     ca1: f64,
@@ -246,8 +203,6 @@ fn calc_shape_delta_with_avgs(
     }
 
 /// Build curves and caches for the resort algorithm.
-///
-/// Ported from Java `buildCurvesAndCaches()`.
 fn build_curves_and_caches(
     old_to_new: &BTreeMap<usize, usize>,
     new_to_old: &BTreeMap<usize, usize>,
@@ -260,9 +215,7 @@ fn build_curves_and_caches(
         todo!()
     }
 
-/// Build the check set for the resort algorithm (candidates to compare against).
-///
-/// Ported from Java `buildCheckSet()`.
+/// Build the check set for the resort algorithm.
 fn build_check_set(
     base_curve: &BTreeMap<usize, f64>,
     connect_map: &HashMap<usize, HashMap<OrdF64, HashSet<usize>>>,
@@ -271,8 +224,6 @@ fn build_check_set(
     }
 
 /// Prepare for a resort pass.
-///
-/// Ported from Java `setupForResort()`.
 fn setup_for_resort(
     conn_vecs: &BTreeMap<usize, BTreeSet<usize>>,
     ordered: &[usize],
@@ -282,8 +233,6 @@ fn setup_for_resort(
     }
 
 /// Perform a single resort pass.
-///
-/// Ported from Java `resort()`.
 fn resort_pass(prep: &ClusterPrep) -> Vec<usize> {
         todo!()
     }
@@ -292,12 +241,7 @@ fn resort_pass(prep: &ClusterPrep) -> Vec<usize> {
 // Connection vector computation (shared between modes)
 // ============================================================================
 
-/// Build connection vectors: for each row, the sorted set of neighbor rows.
-///
-/// Only uses non-shadow links. This is the Jaccard "neighborhood fingerprint"
-/// of each node.
-///
-/// Ported from Java `getConnectionVectors()`.
+/// Build connection vectors for each node.
 fn get_connection_vectors(
     network: &Network,
     node_order: &[NodeId],
@@ -310,9 +254,6 @@ fn get_connection_vectors(
 // ============================================================================
 
 /// A link between two row indices (for the similarity distance map).
-///
-/// Compared by string representation of src then trg, matching Java's
-/// `Link.compareTo()` which uses `compareToIgnoreCase()` on string names.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct SimLink {
     src: usize,
@@ -338,8 +279,6 @@ impl PartialOrd for SimLink {
 }
 
 /// An f64 wrapper that implements Ord (for use in BTreeMap keys and HashMaps).
-///
-/// Only valid for non-NaN values (which is guaranteed for Jaccard/cosine values).
 #[derive(Debug, Clone, Copy)]
 struct OrdF64(f64);
 
@@ -376,13 +315,6 @@ struct DoubleRanked {
 }
 
 /// Compute Jaccard similarity for all connected pairs.
-///
-/// Returns:
-/// - `dists`: Jaccard similarity (descending) -> set of links at that level.
-/// - `deg_mag`: row -> number of neighbors (connection vector size).
-/// - `highest_degree`: row index of the node with the most neighbors.
-///
-/// Ported from Java `getJaccard()`.
 fn get_jaccard(
     conn_vecs: &BTreeMap<usize, BTreeSet<usize>>,
     network: &Network,
@@ -399,9 +331,7 @@ fn get_jaccard(
 // Greedy chaining (clustered mode)
 // ============================================================================
 
-/// Greedily chain nodes by similarity.
-///
-/// Ported from Java `orderByDistanceChained()`.
+/// Order nodes by chaining similar neighbors.
 fn order_by_distance_chained(
     row_to_name: &[&str],
     start: usize,
@@ -414,13 +344,6 @@ fn order_by_distance_chained(
     }
 
 /// Find the best unseen hop from a set of launch nodes.
-///
-/// Ported from Java `findBestUnseenHop()`.
-///
-/// Returns the best unseen node reachable from the launch set (or from any
-/// seen node if `launch_nodes` is None) with the highest similarity, breaking
-/// ties by degree, then by position of the "other" end in current_order,
-/// then by name (case-insensitive).
 fn find_best_unseen_hop(
     row_to_name: &[&str],
     dists: &BTreeMap<std::cmp::Reverse<OrdF64>, BTreeSet<SimLink>>,
@@ -433,8 +356,6 @@ fn find_best_unseen_hop(
     }
 
 /// Handle fallback when no connected unseen nodes exist.
-///
-/// Ported from Java `handleFallbacks()`.
 fn handle_fallbacks(
     row_to_name: &[&str],
     deg_mag: &HashMap<usize, usize>,
@@ -445,8 +366,6 @@ fn handle_fallbacks(
     }
 
 /// Find the highest-degree remaining (unseen) node.
-///
-/// Ported from Java `getHighestDegreeRemaining()`.
 fn get_highest_degree_remaining(
     row_to_name: &[&str],
     seen: &HashSet<usize>,
@@ -455,9 +374,7 @@ fn get_highest_degree_remaining(
         todo!()
     }
 
-/// Maintain the chain by placing the bridge and new node at the front.
-///
-/// Ported from Java `maintainChain()`.
+/// Maintain the chain state after placing a new node.
 fn maintain_chain(chain: &mut Vec<usize>, hop: &DoubleRanked, limit: usize) {
         todo!()
     }

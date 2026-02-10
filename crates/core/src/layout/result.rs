@@ -17,10 +17,6 @@
 //! than an **O(V + E) recomputation**.  The edge layout algorithm computes both
 //! sets of column numbers in a single pass.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.model.BioFabricNetwork.LinkInfo` (dual column storage)
-//! - Java: `org.systemsbiology.biofabric.model.BioFabricNetwork.NodeInfo` (dual span storage)
 
 use crate::model::{AnnotationSet, Network, NodeId};
 use indexmap::IndexMap;
@@ -77,14 +73,10 @@ pub struct NetworkLayout {
     /// This drives the link group annotations and the comparator used
     /// during edge layout. The order is set during the edge layout phase.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.linkGrouping_`
     pub link_group_order: Vec<String>,
 
     /// Layout mode text for BIF serialization.
     ///
-    /// Java writes this as the `mode` attribute of `<linkGroups>`.
     /// Typical values: `"perNode"`, `"perNetwork"`.
     /// Empty string means no explicit mode (ungrouped layout).
     pub layout_mode_text: String,
@@ -99,9 +91,6 @@ pub struct NetworkLayout {
     /// Populated by `NodeClusterLayout`. Written as `cluster="..."` attribute
     /// on `<node>` elements in BIF XML.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.NodeInfo.getCluster()`
     #[serde(default, skip_serializing_if = "std::collections::HashMap::is_empty")]
     pub cluster_assignments: std::collections::HashMap<NodeId, String>,
 }
@@ -169,22 +158,10 @@ impl NetworkLayout {
 
     /// Extract a submodel from a fully laid-out session, compressing rows and columns.
     ///
-    /// This replicates the Java `BioFabricNetwork.fillSubModel()` behavior:
-    /// 1. Keep only links where both endpoints are in the extract set
-    /// 2. Keep only nodes that are in the extract set
-    /// 3. Compress rows (renumber sequentially)
-    /// 4. Compress non-shadow and shadow columns independently
-    /// 5. Set each node's maxCol = maxLinkCol and maxColSha = maxShadLinkCol
-    ///    (matching a Java HashMap key-type mismatch bug where nodes always get
-    ///     the global max column as their rightmost column)
-    ///
     /// This is different from `Network::extract_subnetwork` which extracts from
     /// the raw network and re-runs the layout from scratch. This function
     /// preserves the original layout ordering and just compresses it.
     ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.fillSubModel()`
     pub fn extract_submodel(
         &self,
         network: &Network,
@@ -250,7 +227,7 @@ pub struct NodeLayout {
     /// Pre-computed plain (non-shadow) drain zones.
     ///
     /// When `Some`, the XML writer uses these instead of computing drain zones
-    /// from the link layout. Used by submodel extraction where the Java
+    /// from the link layout. Used by submodel extraction where the
     /// drain zone scan behavior differs from the standard computation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub plain_drain_zones: Option<Vec<(usize, usize)>>,
@@ -334,9 +311,6 @@ impl NodeLayout {
 /// - `column_no_shadows` — position when shadows are hidden (`None` for shadow links,
 ///   since they are invisible in that mode)
 ///
-/// ## References
-///
-/// - Java: `BioFabricNetwork.LinkInfo.shadowColumn_` / `noShadowColumn_`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LinkLayout {
     /// Column when shadow links are displayed.

@@ -1,6 +1,6 @@
 //! Intermediate build data passed between layout phases.
 //!
-//! In the Java implementation, `BuildData` (and its subclass `BuildDataImpl`)
+//! In the original implementation, `BuildData` (and its subclass `BuildDataImpl`)
 //! is the primary carrier of state between the node-layout phase and the
 //! edge-layout phase. It holds the network, the computed node ordering, shadow
 //! generation flags, and any plugin-specific data (e.g., alignment metadata).
@@ -8,11 +8,6 @@
 //! This Rust equivalent (`LayoutBuildData`) serves the same role: it is
 //! populated by the `NodeLayout`, then consumed by the `EdgeLayout`.
 //!
-//! ## References
-//!
-//! - Java: `org.systemsbiology.biofabric.model.BioFabricNetwork.BuildData`
-//! - Java: `org.systemsbiology.biofabric.model.BuildDataImpl`
-//! - Java: `org.systemsbiology.biofabric.plugin.PluginBuildData`
 
 use super::link_group::LinkGroupIndex;
 use super::traits::LayoutMode;
@@ -35,11 +30,6 @@ use std::collections::HashMap;
 /// 5. Pass to `EdgeLayout::layout_edges_from_build_data()`
 /// 6. Result: `NetworkLayout`
 ///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.model.BioFabricNetwork.BuildData`
-/// - Java: `org.systemsbiology.biofabric.model.BuildDataImpl`
-/// - Java: `org.systemsbiology.biofabric.plugin.PluginBuildData`
 #[derive(Debug)]
 pub struct LayoutBuildData {
     /// The network being laid out.
@@ -65,9 +55,8 @@ pub struct LayoutBuildData {
     /// Populated only when computing an alignment layout (GROUP, ORPHAN,
     /// or CYCLE mode). `None` for regular (non-alignment) layouts.
     ///
-    /// This replaces the Java `PluginBuildData` pattern. Since the
-    /// alignment is natively integrated (not a plugin), a typed field
-    /// is cleaner than `dyn Any` downcasting.
+    /// Since alignment is natively integrated, a typed field is
+    /// cleaner than dynamic downcasting.
     pub alignment_data: Option<AlignmentBuildData>,
 }
 
@@ -112,12 +101,7 @@ impl LayoutBuildData {
 
 /// Alignment-specific build data carried through layout phases.
 ///
-/// This replaces the Java `NetworkAlignmentBuildData` and stores alignment
-/// metadata that the alignment node/edge layouts need.
-///
-/// ## References
-///
-/// - Java: `org.systemsbiology.biofabric.plugin.core.align.NetworkAlignmentBuildData`
+/// Stores alignment metadata that the alignment node/edge layouts need.
 #[derive(Debug, Clone)]
 pub struct AlignmentBuildData {
     /// Node color assignments (Purple/Blue/Red).
@@ -129,9 +113,6 @@ pub struct AlignmentBuildData {
     /// `None` if no perfect alignment was provided. Flows from
     /// [`MergedNetwork::merged_to_correct`] to `NodeGroupMap` and scoring.
     ///
-    /// ## References
-    ///
-    /// - Java: `NetworkAlignmentBuildData.mergedToCorrectNC`
     pub merged_to_correct: Option<HashMap<NodeId, bool>>,
 
     /// Precomputed node groups (for GROUP and CYCLE layouts).
@@ -143,9 +124,6 @@ pub struct AlignmentBuildData {
     /// alignment, and whether it's a cycle (vs a path). Used by
     /// `AlignCycleEdgeLayout` to generate per-cycle/path link annotations.
     ///
-    /// ## References
-    ///
-    /// - Java: `AlignCycleLayout.CycleBounds`
     pub cycle_bounds: Vec<CycleBound>,
 
     /// Whether to use node groups for annotation (GROUP layout mode).
@@ -166,9 +144,6 @@ pub struct AlignmentBuildData {
 /// Used by `AlignCycleEdgeLayout` to determine where each cycle/path's
 /// edges start and end in the column ordering, and to label annotations.
 ///
-/// ## References
-///
-/// - Java: `AlignCycleLayout.CycleBounds`
 #[derive(Debug, Clone)]
 pub struct CycleBound {
     /// The first node in this cycle/path (by row order).

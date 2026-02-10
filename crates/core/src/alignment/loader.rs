@@ -1,6 +1,6 @@
 //! Alignment loader stubs.
 //!
-//! Parity with Java `AlignmentLoader`.
+//! Alignment loader stubs for parsing alignment mapping data.
 
 use crate::io::ParseError;
 use crate::io::align::AlignmentMap;
