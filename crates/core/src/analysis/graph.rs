@@ -20,38 +20,8 @@ use std::collections::{HashMap, HashSet, VecDeque};
 /// # Returns
 /// Vector of node IDs in BFS visit order, or empty if start node doesn't exist.
 pub fn bfs(network: &Network, start: &NodeId) -> Vec<NodeId> {
-    if !network.contains_node(start) {
-        return Vec::new();
+        todo!()
     }
-
-    let mut result = Vec::new();
-    let mut visited = HashSet::new();
-    let mut queue = VecDeque::new();
-
-    visited.insert(start.clone());
-    queue.push_back(start.clone());
-
-    while let Some(node_id) = queue.pop_front() {
-        result.push(node_id.clone());
-
-        let mut neighbors: Vec<NodeId> = network
-            .neighbors(&node_id)
-            .into_iter()
-            .filter(|n| !visited.contains(*n))
-            .cloned()
-            .collect();
-        // Sort lexicographically for determinism
-        neighbors.sort();
-
-        for neighbor in neighbors {
-            if visited.insert(neighbor.clone()) {
-                queue.push_back(neighbor);
-            }
-        }
-    }
-
-    result
-}
 
 /// Perform depth-first search from a starting node.
 ///
@@ -64,38 +34,8 @@ pub fn bfs(network: &Network, start: &NodeId) -> Vec<NodeId> {
 /// # Returns
 /// Vector of node IDs in DFS visit order, or empty if start node doesn't exist.
 pub fn dfs(network: &Network, start: &NodeId) -> Vec<NodeId> {
-    if !network.contains_node(start) {
-        return Vec::new();
+        todo!()
     }
-
-    let mut result = Vec::new();
-    let mut visited = HashSet::new();
-    let mut stack = Vec::new();
-
-    stack.push(start.clone());
-
-    while let Some(node_id) = stack.pop() {
-        if !visited.insert(node_id.clone()) {
-            continue;
-        }
-        result.push(node_id.clone());
-
-        let mut neighbors: Vec<NodeId> = network
-            .neighbors(&node_id)
-            .into_iter()
-            .filter(|n| !visited.contains(*n))
-            .cloned()
-            .collect();
-        // Sort in reverse so that the smallest comes out first from the stack
-        neighbors.sort_by(|a, b| b.cmp(a));
-
-        for neighbor in neighbors {
-            stack.push(neighbor);
-        }
-    }
-
-    result
-}
 
 /// Find all connected components in the network.
 ///
@@ -103,33 +43,8 @@ pub fn dfs(network: &Network, start: &NodeId) -> Vec<NodeId> {
 /// Components are sorted by size (largest first), and nodes within each
 /// component are in BFS order from the highest-degree node.
 pub fn connected_components(network: &Network) -> Vec<Vec<NodeId>> {
-    let mut unvisited: HashSet<NodeId> = network.node_ids().cloned().collect();
-    let mut components = Vec::new();
-
-    while !unvisited.is_empty() {
-        // Find highest-degree unvisited node (break ties lexicographically)
-        let start = unvisited
-            .iter()
-            .max_by(|a, b| {
-                network
-                    .degree(a)
-                    .cmp(&network.degree(b))
-                    .then_with(|| b.cmp(a)) // lex ascending means prefer smaller name
-            })
-            .cloned()
-            .unwrap();
-
-        let component = bfs(network, &start);
-        for node in &component {
-            unvisited.remove(node);
-        }
-        components.push(component);
+        todo!()
     }
-
-    // Sort components by size descending
-    components.sort_by(|a, b| b.len().cmp(&a.len()));
-    components
-}
 
 /// Find the shortest path between two nodes.
 ///
@@ -144,50 +59,8 @@ pub fn connected_components(network: &Network) -> Vec<Vec<NodeId>> {
 /// # Returns
 /// `Some(path)` if a path exists, `None` otherwise.
 pub fn shortest_path(network: &Network, start: &NodeId, end: &NodeId) -> Option<Vec<NodeId>> {
-    if !network.contains_node(start) || !network.contains_node(end) {
-        return None;
+        todo!()
     }
-    if start == end {
-        return Some(vec![start.clone()]);
-    }
-
-    let mut visited = HashSet::new();
-    let mut parent: HashMap<NodeId, NodeId> = HashMap::new();
-    let mut queue = VecDeque::new();
-
-    visited.insert(start.clone());
-    queue.push_back(start.clone());
-
-    while let Some(node_id) = queue.pop_front() {
-        let mut neighbors: Vec<NodeId> = network
-            .neighbors(&node_id)
-            .into_iter()
-            .filter(|n| !visited.contains(*n))
-            .cloned()
-            .collect();
-        neighbors.sort();
-
-        for neighbor in neighbors {
-            if visited.insert(neighbor.clone()) {
-                parent.insert(neighbor.clone(), node_id.clone());
-                if &neighbor == end {
-                    // Reconstruct path
-                    let mut path = vec![neighbor];
-                    let mut current = &path[0];
-                    while let Some(p) = parent.get(current) {
-                        path.push(p.clone());
-                        current = path.last().unwrap();
-                    }
-                    path.reverse();
-                    return Some(path);
-                }
-                queue.push_back(neighbor);
-            }
-        }
-    }
-
-    None
-}
 
 /// Get nodes within N hops of a starting node.
 ///
@@ -199,48 +72,16 @@ pub fn shortest_path(network: &Network, start: &NodeId, end: &NodeId) -> Option<
 /// # Returns
 /// Set of node IDs within the specified distance.
 pub fn neighborhood(network: &Network, start: &NodeId, hops: usize) -> HashSet<NodeId> {
-    if !network.contains_node(start) {
-        return HashSet::new();
+        todo!()
     }
-
-    let mut visited = HashSet::new();
-    let mut queue = VecDeque::new();
-
-    visited.insert(start.clone());
-    queue.push_back((start.clone(), 0usize));
-
-    while let Some((node_id, depth)) = queue.pop_front() {
-        if depth >= hops {
-            continue;
-        }
-        let mut neighbors: Vec<NodeId> = network
-            .neighbors(&node_id)
-            .into_iter()
-            .filter(|n| !visited.contains(*n))
-            .cloned()
-            .collect();
-        neighbors.sort();
-
-        for neighbor in neighbors {
-            if visited.insert(neighbor.clone()) {
-                queue.push_back((neighbor, depth + 1));
-            }
-        }
-    }
-
-    visited
-}
 
 /// Find the node with highest degree in the network.
 ///
 /// # Returns
 /// The node ID with highest degree, or None if network is empty.
 pub fn highest_degree_node(network: &Network) -> Option<NodeId> {
-    network
-        .node_ids()
-        .max_by_key(|id| network.degree(id))
-        .cloned()
-}
+        todo!()
+    }
 
 /// Return all nodes sorted by degree (descending), with lexicographic
 /// tie-breaking for reproducibility.
@@ -256,16 +97,8 @@ pub fn highest_degree_node(network: &Network) -> Option<NodeId> {
 ///
 /// - Java: `GraphSearcher.nodeDegreeOrder()`
 pub fn nodes_by_degree(network: &Network) -> Vec<(NodeId, usize)> {
-    let mut nodes: Vec<(NodeId, usize)> = network
-        .node_ids()
-        .map(|id| (id.clone(), network.degree(id)))
-        .collect();
-    nodes.sort_by(|(id_a, deg_a), (id_b, deg_b)| {
-        deg_b.cmp(deg_a) // descending degree
-            .then_with(|| id_a.cmp(id_b)) // ascending name for tie-break
-    });
-    nodes
-}
+        todo!()
+    }
 
 /// Compute a topological ordering of a directed network (Kahn's algorithm).
 ///
@@ -290,100 +123,8 @@ pub fn nodes_by_degree(network: &Network) -> Vec<(NodeId, usize)> {
 ///
 /// - Java: `GraphSearcher.topoSort()`
 pub fn topological_sort(network: &Network, compress: bool) -> Option<Vec<NodeId>> {
-    // Build in-degree map
-    let mut in_degree: HashMap<&NodeId, usize> = HashMap::new();
-    for id in network.node_ids() {
-        in_degree.insert(id, 0);
+        todo!()
     }
-    for link in network.links() {
-        if link.directed == Some(true) && !link.is_shadow {
-            *in_degree.entry(&link.target).or_insert(0) += 1;
-        }
-    }
-
-    // Seed queue with zero-in-degree nodes (sorted for determinism)
-    let mut queue: VecDeque<&NodeId> = {
-        let mut zeros: Vec<&NodeId> = in_degree
-            .iter()
-            .filter(|(_, &d)| d == 0)
-            .map(|(&id, _)| id)
-            .collect();
-        zeros.sort();
-        zeros.into_iter().collect()
-    };
-
-    let mut result: Vec<NodeId> = Vec::with_capacity(network.node_count());
-
-    if compress {
-        // Level-aware BFS: process one "frontier" at a time
-        while !queue.is_empty() {
-            let level_size = queue.len();
-            let mut level_nodes: Vec<(&NodeId, usize)> = Vec::with_capacity(level_size);
-
-            for _ in 0..level_size {
-                let node_id = queue.pop_front().unwrap();
-                level_nodes.push((node_id, network.degree(node_id)));
-            }
-
-            // Sort within level: degree descending, then name ascending
-            level_nodes.sort_by(|(id_a, deg_a), (id_b, deg_b)| {
-                deg_b.cmp(deg_a).then_with(|| id_a.cmp(id_b))
-            });
-
-            for (node_id, _) in &level_nodes {
-                result.push((*node_id).clone());
-
-                // Collect and sort successors for determinism
-                let mut successors: Vec<&NodeId> = Vec::new();
-                for link in network.links() {
-                    if link.directed == Some(true)
-                        && !link.is_shadow
-                        && &link.source == *node_id
-                    {
-                        let deg = in_degree.get_mut(&link.target).unwrap();
-                        *deg -= 1;
-                        if *deg == 0 {
-                            successors.push(&link.target);
-                        }
-                    }
-                }
-                successors.sort();
-                for s in successors {
-                    queue.push_back(s);
-                }
-            }
-        }
-    } else {
-        // Simple Kahn's
-        while let Some(node_id) = queue.pop_front() {
-            result.push(node_id.clone());
-
-            let mut successors: Vec<&NodeId> = Vec::new();
-            for link in network.links() {
-                if link.directed == Some(true)
-                    && !link.is_shadow
-                    && &link.source == node_id
-                {
-                    let deg = in_degree.get_mut(&link.target).unwrap();
-                    *deg -= 1;
-                    if *deg == 0 {
-                        successors.push(&link.target);
-                    }
-                }
-            }
-            successors.sort();
-            for s in successors {
-                queue.push_back(s);
-            }
-        }
-    }
-
-    if result.len() == network.node_count() {
-        Some(result)
-    } else {
-        None // Cycle detected
-    }
-}
 
 /// Compute the level (longest path from any source) for each node in a DAG.
 ///
@@ -394,28 +135,8 @@ pub fn topological_sort(network: &Network, compress: bool) -> Option<Vec<NodeId>
 ///
 /// - Java: `HierDAGLayout` level computation
 pub fn dag_levels(network: &Network) -> Option<HashMap<NodeId, usize>> {
-    let topo = topological_sort(network, false)?;
-    let mut levels: HashMap<NodeId, usize> = HashMap::new();
-
-    for id in &topo {
-        levels.insert(id.clone(), 0);
+        todo!()
     }
-
-    for id in &topo {
-        let current_level = levels[id];
-        for link in network.links() {
-            if link.directed == Some(true)
-                && !link.is_shadow
-                && &link.source == id
-            {
-                let target_level = levels.get_mut(&link.target).unwrap();
-                *target_level = (*target_level).max(current_level + 1);
-            }
-        }
-    }
-
-    Some(levels)
-}
 
 #[cfg(test)]
 mod tests {

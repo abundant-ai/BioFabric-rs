@@ -99,13 +99,7 @@ impl Network {
 
     /// Create a network with pre-allocated capacity.
     pub fn with_capacity(node_capacity: usize, link_capacity: usize) -> Self {
-        Self {
-            nodes: IndexMap::with_capacity(node_capacity),
-            links: Vec::with_capacity(link_capacity),
-            lone_nodes: IndexSet::new(),
-            metadata: NetworkMetadata::default(),
-            adjacency: AdjacencyIndex::default(),
-        }
+        todo!()
     }
 
     // =========================================================================
@@ -113,28 +107,23 @@ impl Network {
     // =========================================================================
 
     /// Add a node to the network.
-    ///
-    /// If a node with the same ID already exists, this is a no-op.
     pub fn add_node(&mut self, node: Node) {
-        self.nodes.entry(node.id.clone()).or_insert(node);
+        todo!()
     }
 
     /// Add a node by ID, creating a Node if it doesn't exist.
     pub fn add_node_by_id(&mut self, id: impl Into<NodeId>) -> &Node {
-        let id = id.into();
-        self.nodes
-            .entry(id.clone())
-            .or_insert_with(|| Node::new(id))
+        todo!()
     }
 
     /// Get a node by its ID.
     pub fn get_node(&self, id: &NodeId) -> Option<&Node> {
-        self.nodes.get(id)
+        todo!()
     }
 
     /// Check if a node exists in the network.
     pub fn contains_node(&self, id: &NodeId) -> bool {
-        self.nodes.contains_key(id)
+        todo!()
     }
 
     /// Get the number of nodes.
@@ -154,9 +143,7 @@ impl Network {
 
     /// Add a lone node (a node with no edges).
     pub fn add_lone_node(&mut self, id: impl Into<NodeId>) {
-        let id = id.into();
-        self.add_node_by_id(id.clone());
-        self.lone_nodes.insert(id);
+        todo!()
     }
 
     /// Get lone nodes (nodes with no edges).
@@ -169,19 +156,8 @@ impl Network {
     // =========================================================================
 
     /// Add a link to the network.
-    ///
-    /// This also ensures both endpoint nodes exist in the network.
     pub fn add_link(&mut self, link: Link) {
-        // Ensure both nodes exist
-        self.add_node_by_id(link.source.clone());
-        self.add_node_by_id(link.target.clone());
-
-        // Remove from lone nodes if they were there
-        self.lone_nodes.shift_remove(&link.source);
-        self.lone_nodes.shift_remove(&link.target);
-
-        self.invalidate_adjacency();
-        self.links.push(link);
+        todo!()
     }
 
     /// Get the number of links.
@@ -201,7 +177,6 @@ impl Network {
 
     /// Get mutable access to links.
     pub fn links_mut(&mut self) -> &mut Vec<Link> {
-        self.invalidate_adjacency();
         &mut self.links
     }
 
@@ -210,102 +185,43 @@ impl Network {
     // =========================================================================
 
     /// Get all links incident to a node (as source or target).
-    ///
-    /// Uses the adjacency index for O(1) lookup when available,
-    /// otherwise falls back to O(E) scan.
     pub fn links_for_node(&self, node_id: &NodeId) -> Vec<&Link> {
-        if let Some(indices) = self.adjacency_indices_for(node_id) {
-            indices.iter().map(|&i| &self.links[i]).collect()
-        } else {
-            self.links
-                .iter()
-                .filter(|link| &link.source == node_id || &link.target == node_id)
-                .collect()
-        }
+        todo!()
     }
 
     /// Get the degree of a node (number of incident edges).
-    ///
-    /// Uses the adjacency index for O(1) lookup when available.
     pub fn degree(&self, node_id: &NodeId) -> usize {
-        if let Some(indices) = self.adjacency_indices_for(node_id) {
-            indices.len()
-        } else {
-            self.links
-                .iter()
-                .filter(|link| &link.source == node_id || &link.target == node_id)
-                .count()
-        }
+        todo!()
     }
 
     /// Get neighbors of a node.
-    ///
-    /// Uses the adjacency index for O(1) lookup when available.
     pub fn neighbors(&self, node_id: &NodeId) -> HashSet<&NodeId> {
-        if let Some(indices) = self.adjacency_indices_for(node_id) {
-            indices
-                .iter()
-                .filter_map(|&i| {
-                    let link = &self.links[i];
-                    if &link.source == node_id {
-                        Some(&link.target)
-                    } else if &link.target == node_id {
-                        Some(&link.source)
-                    } else {
-                        None
-                    }
-                })
-                .collect()
-        } else {
-            self.links
-                .iter()
-                .filter_map(|link| {
-                    if &link.source == node_id {
-                        Some(&link.target)
-                    } else if &link.target == node_id {
-                        Some(&link.source)
-                    } else {
-                        None
-                    }
-                })
-                .collect()
-        }
+        todo!()
     }
 
     /// Get all unique relation types in the network.
     pub fn relation_types(&self) -> HashSet<&str> {
-        self.links.iter().map(|link| link.relation.as_str()).collect()
+        todo!()
     }
 
     /// Get a node mutably by ID.
     pub fn get_node_mut(&mut self, id: &NodeId) -> Option<&mut Node> {
-        self.nodes.get_mut(id)
+        todo!()
     }
 
     /// Set an attribute on a node (convenience wrapper).
-    ///
-    /// Returns `false` if the node doesn't exist.
     pub fn set_node_attribute(
         &mut self,
         node_id: &NodeId,
         key: impl Into<String>,
         value: impl Into<String>,
     ) -> bool {
-        if let Some(node) = self.nodes.get_mut(node_id) {
-            node.set_attribute(key, value);
-            true
-        } else {
-            false
-        }
+        todo!()
     }
 
     /// Helper: get adjacency index entries for a node if available.
     fn adjacency_indices_for(&self, node_id: &NodeId) -> Option<&Vec<usize>> {
-        if self.adjacency.is_built {
-            self.adjacency.by_node.get(node_id)
-        } else {
-            None
-        }
+        todo!()
     }
 
     // =========================================================================
@@ -313,101 +229,46 @@ impl Network {
     // =========================================================================
 
     /// Generate shadow links for all non-feedback, non-shadow links.
-    ///
-    /// In BioFabric, every non-self-loop edge gets a "shadow" copy so the edge
-    /// is visible at both endpoints. Shadows have `is_shadow = true` and
-    /// swapped source/target.
-    ///
-    /// This should be called **once** after all links have been added and
-    /// before layout computation. Calling it multiple times will produce
-    /// duplicate shadows.
-    ///
-    /// Returns the number of shadow links added.
-    ///
-    /// ## References
-    ///
-    /// - Java: `BioFabricNetwork.processLinks_()` (shadow generation pass)
-    /// - Java: `FabricLink.shadowLink()` / `FabricLink.flipped()`
     pub fn generate_shadows(&mut self) -> usize {
-        let shadows: Vec<Link> = self
-            .links
-            .iter()
-            .filter(|link| !link.is_shadow)
-            .filter_map(|link| link.to_shadow())
-            .collect();
-
-        let count = shadows.len();
-        for shadow in shadows {
-            self.links.push(shadow);
-        }
-        if count > 0 {
-            self.invalidate_adjacency();
-        }
-        count
+        todo!()
     }
 
     /// Check whether shadow links have already been generated.
-    ///
-    /// Returns `true` if at least one link has `is_shadow == true`.
     pub fn has_shadows(&self) -> bool {
-        self.links.iter().any(|l| l.is_shadow)
+        todo!()
     }
 
     /// Count of shadow links in the network.
     pub fn shadow_count(&self) -> usize {
-        self.links.iter().filter(|l| l.is_shadow).count()
+        todo!()
     }
 
     /// Count of non-shadow links.
     pub fn regular_link_count(&self) -> usize {
-        self.links.iter().filter(|l| !l.is_shadow).count()
+        todo!()
     }
 
     // =========================================================================
-    // Adjacency index (stub)
+    // Adjacency index
     // =========================================================================
 
     /// Access the adjacency index if it has been built.
     pub fn adjacency_index(&self) -> Option<&IndexMap<NodeId, Vec<usize>>> {
-        if self.adjacency.is_built {
-            Some(&self.adjacency.by_node)
-        } else {
-            None
-        }
+        todo!()
     }
 
     /// Rebuild the adjacency index.
-    ///
-    /// Populates a per-node map of link indices for O(1) neighbor lookup.
-    /// Should be called once after all links are added, and is automatically
-    /// invalidated when links are modified.
     pub fn rebuild_adjacency_index(&mut self) {
-        let mut by_node: IndexMap<NodeId, Vec<usize>> = IndexMap::new();
-
-        // Pre-populate all nodes (including lone nodes) with empty lists
-        for id in self.nodes.keys() {
-            by_node.entry(id.clone()).or_default();
-        }
-
-        for (i, link) in self.links.iter().enumerate() {
-            by_node.entry(link.source.clone()).or_default().push(i);
-            if link.source != link.target {
-                by_node.entry(link.target.clone()).or_default().push(i);
-            }
-        }
-
-        self.adjacency.by_node = by_node;
-        self.adjacency.is_built = true;
+        todo!()
     }
 
     /// Whether the adjacency index is built and valid.
     pub fn has_adjacency_index(&self) -> bool {
-        self.adjacency.is_built
+        todo!()
     }
 
     fn invalidate_adjacency(&mut self) {
-        self.adjacency.by_node.clear();
-        self.adjacency.is_built = false;
+        todo!()
     }
 
     // =========================================================================
@@ -416,98 +277,17 @@ impl Network {
 
     /// Detect whether the network contains directed edges and update metadata.
     pub fn detect_directed(&mut self) {
-        self.metadata.is_directed = self.links.iter().any(|l| l.directed == Some(true));
+        todo!()
     }
 
     /// Detect whether the network is bipartite (two-colorable) and update metadata.
-    ///
-    /// Uses BFS-based two-coloring. Returns `true` if bipartite.
     pub fn detect_bipartite(&mut self) -> bool {
-        if !self.adjacency.is_built {
-            self.rebuild_adjacency_index();
-        }
-
-        let mut color: std::collections::HashMap<&NodeId, bool> = std::collections::HashMap::new();
-        let mut is_bipartite = true;
-
-        for start_id in self.nodes.keys() {
-            if color.contains_key(start_id) {
-                continue;
-            }
-            color.insert(start_id, false);
-            let mut queue = std::collections::VecDeque::new();
-            queue.push_back(start_id);
-
-            while let Some(node_id) = queue.pop_front() {
-                let node_color = color[node_id];
-                for neighbor_id in self.neighbors(node_id) {
-                    if let Some(&nc) = color.get(neighbor_id) {
-                        if nc == node_color {
-                            is_bipartite = false;
-                            break;
-                        }
-                    } else {
-                        color.insert(neighbor_id, !node_color);
-                        queue.push_back(neighbor_id);
-                    }
-                }
-                if !is_bipartite {
-                    break;
-                }
-            }
-            if !is_bipartite {
-                break;
-            }
-        }
-
-        self.metadata.is_bipartite = Some(is_bipartite);
-        is_bipartite
+        todo!()
     }
 
     /// Detect whether the network is a DAG and update metadata.
-    ///
-    /// Uses Kahn's algorithm (topological sort). Returns `true` if DAG.
-    /// Only meaningful for directed networks.
     pub fn detect_dag(&mut self) -> bool {
-        if !self.metadata.is_directed {
-            self.metadata.is_dag = Some(false);
-            return false;
-        }
-
-        // Kahn's algorithm
-        let mut in_degree: std::collections::HashMap<&NodeId, usize> = std::collections::HashMap::new();
-        for id in self.nodes.keys() {
-            in_degree.insert(id, 0);
-        }
-        for link in &self.links {
-            if link.directed == Some(true) && !link.is_shadow {
-                *in_degree.entry(&link.target).or_insert(0) += 1;
-            }
-        }
-
-        let mut queue: std::collections::VecDeque<&NodeId> = in_degree
-            .iter()
-            .filter(|(_, &d)| d == 0)
-            .map(|(&id, _)| id)
-            .collect();
-
-        let mut visited = 0usize;
-        while let Some(node_id) = queue.pop_front() {
-            visited += 1;
-            for link in &self.links {
-                if link.directed == Some(true) && !link.is_shadow && &link.source == node_id {
-                    let deg = in_degree.get_mut(&link.target).unwrap();
-                    *deg -= 1;
-                    if *deg == 0 {
-                        queue.push_back(&link.target);
-                    }
-                }
-            }
-        }
-
-        let is_dag = visited == self.nodes.len();
-        self.metadata.is_dag = Some(is_dag);
-        is_dag
+        todo!()
     }
 
     // =========================================================================
@@ -515,118 +295,36 @@ impl Network {
     // =========================================================================
 
     /// Get nodes within N hops of a given node (BFS neighborhood).
-    ///
-    /// Returns the set of node IDs within `max_hops` edges of `start`.
-    /// The start node itself is always included (0 hops).
     pub fn n_hop_neighborhood(&self, start: &NodeId, max_hops: usize) -> HashSet<NodeId> {
-        let mut visited = HashSet::new();
-        let mut queue = std::collections::VecDeque::new();
-
-        visited.insert(start.clone());
-        queue.push_back((start.clone(), 0usize));
-
-        while let Some((node_id, depth)) = queue.pop_front() {
-            if depth >= max_hops {
-                continue;
-            }
-            for neighbor in self.neighbors(&node_id) {
-                if visited.insert(neighbor.clone()) {
-                    queue.push_back((neighbor.clone(), depth + 1));
-                }
-            }
-        }
-
-        visited
+        todo!()
     }
 
     /// Get the first neighbors (1-hop) of a set of nodes.
-    ///
-    /// This is the standard "select first neighbors" operation in BioFabric.
     pub fn first_neighbors(&self, nodes: &HashSet<NodeId>) -> HashSet<NodeId> {
-        let mut result = nodes.clone();
-        for node_id in nodes {
-            for neighbor in self.neighbors(node_id) {
-                result.insert(neighbor.clone());
-            }
-        }
-        result
+        todo!()
     }
 
     // =========================================================================
     // Subnetwork extraction
     // =========================================================================
 
-    /// Extract a subnetwork containing only the specified nodes and their
-    /// interconnecting edges.
-    ///
-    /// ## References
-    ///
-    /// - Java: `BuildExtractorImpl` (subnetwork extraction)
+    /// Extract a subnetwork containing only the specified nodes.
     pub fn extract_subnetwork(&self, node_ids: &HashSet<NodeId>) -> Network {
-        let mut sub = Network::with_capacity(node_ids.len(), 0);
-
-        for id in node_ids {
-            if let Some(node) = self.get_node(id) {
-                sub.add_node(node.clone());
-            }
-        }
-
-        for link in &self.links {
-            if node_ids.contains(&link.source) && node_ids.contains(&link.target) {
-                sub.links.push(link.clone());
-            }
-        }
-
-        // Propagate relevant metadata
-        sub.metadata = self.metadata.clone();
-        sub.metadata.name = self.metadata.name.as_ref().map(|n| format!("{} (subnetwork)", n));
-        sub
+        todo!()
     }
 
     /// Extract the subnetwork reachable within N hops of a starting node.
-    ///
-    /// Convenience wrapper combining `n_hop_neighborhood` and `extract_subnetwork`.
     pub fn extract_neighborhood(&self, start: &NodeId, max_hops: usize) -> Network {
-        let node_ids = self.n_hop_neighborhood(start, max_hops);
-        self.extract_subnetwork(&node_ids)
+        todo!()
     }
 
     // =========================================================================
     // Link deduplication
     // =========================================================================
 
-    /// Remove duplicate links (same source, target, relation, directed, shadow).
-    ///
-    /// Returns the number of duplicates removed.
+    /// Remove duplicate links.
     pub fn deduplicate_links(&mut self) -> usize {
-        let original_count = self.links.len();
-        let mut seen = HashSet::new();
-        self.links.retain(|link| {
-            // For undirected links, normalize to min(source,target) first
-            let key = if link.directed != Some(true) && link.source > link.target {
-                (
-                    link.target.clone(),
-                    link.source.clone(),
-                    link.relation.clone(),
-                    link.directed,
-                    link.is_shadow,
-                )
-            } else {
-                (
-                    link.source.clone(),
-                    link.target.clone(),
-                    link.relation.clone(),
-                    link.directed,
-                    link.is_shadow,
-                )
-            };
-            seen.insert(key)
-        });
-        let removed = original_count - self.links.len();
-        if removed > 0 {
-            self.invalidate_adjacency();
-        }
-        removed
+        todo!()
     }
 
     // =========================================================================
@@ -634,54 +332,16 @@ impl Network {
     // =========================================================================
 
     /// Compare the neighborhoods of two nodes.
-    ///
-    /// Returns the Jaccard similarity of their neighbor sets, plus the
-    /// sets of shared and exclusive neighbors.
-    ///
-    /// ## References
-    ///
-    /// - Java: `CompareNodesSetupDialog`
     pub fn compare_nodes(
         &self,
         node_a: &NodeId,
         node_b: &NodeId,
     ) -> Option<NodeComparison> {
-        if !self.contains_node(node_a) || !self.contains_node(node_b) {
-            return None;
-        }
-
-        let neighbors_a: HashSet<NodeId> = self.neighbors(node_a).into_iter().cloned().collect();
-        let neighbors_b: HashSet<NodeId> = self.neighbors(node_b).into_iter().cloned().collect();
-
-        let shared: HashSet<NodeId> = neighbors_a.intersection(&neighbors_b).cloned().collect();
-        let exclusive_a: HashSet<NodeId> = neighbors_a.difference(&neighbors_b).cloned().collect();
-        let exclusive_b: HashSet<NodeId> = neighbors_b.difference(&neighbors_a).cloned().collect();
-
-        let union_size = neighbors_a.union(&neighbors_b).count();
-        let jaccard = if union_size == 0 {
-            if neighbors_a.is_empty() && neighbors_b.is_empty() { 1.0 } else { 0.0 }
-        } else {
-            shared.len() as f64 / union_size as f64
-        };
-
-        Some(NodeComparison {
-            node_a: node_a.clone(),
-            node_b: node_b.clone(),
-            degree_a: neighbors_a.len(),
-            degree_b: neighbors_b.len(),
-            shared_neighbors: shared,
-            exclusive_a,
-            exclusive_b,
-            jaccard_similarity: jaccard,
-        })
+        todo!()
     }
 }
 
 /// Result of comparing the neighborhoods of two nodes.
-///
-/// ## References
-///
-/// - Java: `CompareNodesSetupDialog`
 #[derive(Debug, Clone)]
 pub struct NodeComparison {
     pub node_a: NodeId,

@@ -92,67 +92,17 @@ impl SelectionState {
     }
 
     /// Compute the bounding rectangle of the selection in grid coordinates.
-    ///
-    /// Returns `(min_col, min_row, max_col, max_row)`, or `None` if the
-    /// selection is empty or the selected elements have no layout info.
     pub fn bounds(&self, layout: &NetworkLayout, show_shadows: bool) -> Option<(f64, f64, f64, f64)> {
-        let mut min_col = f64::MAX;
-        let mut min_row = f64::MAX;
-        let mut max_col = f64::MIN;
-        let mut max_row = f64::MIN;
-        let mut found = false;
-
-        for id in &self.nodes {
-            if let Some(node) = layout.get_node(id) {
-                let (nc_min, nc_max) = if show_shadows {
-                    (node.min_col as f64, node.max_col as f64)
-                } else {
-                    (node.min_col_no_shadows as f64, node.max_col_no_shadows as f64)
-                };
-                min_col = min_col.min(nc_min);
-                max_col = max_col.max(nc_max);
-                min_row = min_row.min(node.row as f64);
-                max_row = max_row.max(node.row as f64);
-                found = true;
-            }
-        }
-
-        let link_list: Vec<_> = layout.iter_links().collect();
-        for &idx in &self.links {
-            if let Some(link) = link_list.get(idx) {
-                let col = if show_shadows {
-                    link.column as f64
-                } else {
-                    link.column_no_shadows.unwrap_or(link.column) as f64
-                };
-                min_col = min_col.min(col);
-                max_col = max_col.max(col);
-                min_row = min_row.min(link.top_row() as f64);
-                max_row = max_row.max(link.bottom_row() as f64);
-                found = true;
-            }
-        }
-
-        if found {
-            Some((min_col, min_row, max_col, max_row))
-        } else {
-            None
-        }
+        todo!()
     }
 
     /// Select all nodes belonging to a specific annotation.
-    ///
-    /// Useful for CLI: "select all nodes in group (P:P/pBp)".
     pub fn select_annotation_nodes(
         &mut self,
         layout: &NetworkLayout,
         start_row: usize,
         end_row: usize,
     ) {
-        for (id, node) in layout.iter_nodes() {
-            if node.row >= start_row && node.row <= end_row {
-                self.nodes.insert(id.clone());
-            }
-        }
+        todo!()
     }
 }
