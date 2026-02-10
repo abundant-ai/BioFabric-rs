@@ -1,4 +1,4 @@
-//! Node cluster layout algorithm.
+//! Node cluster layout.
 
 use super::build_data::LayoutBuildData;
 use super::default::{DefaultEdgeLayout, DefaultNodeLayout};
@@ -8,48 +8,35 @@ use crate::model::{Annotation, Network, Link, NodeId};
 use crate::worker::ProgressMonitor;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-/// How to order clusters relative to each other.
+/// How to order clusters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ClusterOrder {
-    /// BFS traversal of the inter-cluster connectivity graph.
     #[default]
     BreadthFirst,
-    /// By number of inter-cluster links (most links first).
     LinkSize,
-    /// By number of nodes in the cluster (largest first).
     NodeSize,
-    /// Alphabetically by cluster name.
     Name,
 }
 
 /// Where to place inter-cluster edges.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum InterClusterPlacement {
-    /// Inline with the cluster's own edges.
     #[default]
     Inline,
-    /// In a separate region between clusters.
     Between,
 }
 
-/// Configuration for the cluster layout.
+/// Cluster layout configuration.
 #[derive(Debug, Clone, Default)]
 pub struct ClusterLayoutParams {
-    /// How to order clusters.
     pub cluster_order: ClusterOrder,
-    /// Where to place inter-cluster edges.
     pub inter_cluster: InterClusterPlacement,
 }
 
-/// Node cluster layout.
-///
-/// Groups nodes by an attribute (cluster membership) and orders them
-/// so that each cluster occupies a contiguous block of rows.
+/// Node cluster layout (groups nodes by attribute).
 #[derive(Debug, Clone, Default)]
 pub struct NodeClusterLayout {
-    /// Per-node cluster assignments. Key = node ID, value = cluster name.
     pub assignments: HashMap<NodeId, String>,
-    /// Layout parameters.
     pub params: ClusterLayoutParams,
 }
 
@@ -123,9 +110,7 @@ impl NodeLayout for NodeClusterLayout {
 /// Edge layout for clustered networks.
 #[derive(Debug, Clone, Default)]
 pub struct NodeClusterEdgeLayout {
-    /// Layout parameters.
     pub params: ClusterLayoutParams,
-    /// Cluster assignments for inter-cluster edge handling.
     pub assignments: HashMap<NodeId, String>,
 }
 
@@ -144,8 +129,6 @@ impl EdgeLayout for NodeClusterEdgeLayout {
     }
 }
 impl NodeClusterEdgeLayout {
-    /// Rearrange links so inter-cluster edges appear between cluster regions.
-    ///
     #[allow(dead_code)]
     fn rearrange_between(&self, layout: &mut NetworkLayout, _build_data: &LayoutBuildData) {
         todo!()

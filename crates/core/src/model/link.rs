@@ -1,42 +1,16 @@
-//! Link (edge) representation in BioFabric.
-//!
-//! In BioFabric visualization:
-//! - Each link is assigned to a specific column (x-coordinate)
-//! - The link appears as a vertical line segment connecting two node rows
+//! Link (edge) representation.
 
 use super::NodeId;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-/// A link (edge) between two nodes in the network.
-///
 /// A link (edge) between two nodes.
-///
-/// ## Shadow Links
-///
-/// BioFabric uses "shadow links" to show edges twice - once at each endpoint's
-/// natural position. This helps reveal local structure. A link and its shadow
-/// share the same source, target, and relation but `is_shadow` differs.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Link {
-    /// Source node ID.
     pub source: NodeId,
-
-    /// Target node ID.
     pub target: NodeId,
-
-    /// Relationship type or label for this link.
-    /// In SIF files, this is the middle column (e.g., "activates", "inhibits").
     pub relation: String,
-
-    /// Whether this link is directed.
-    /// `None` means directionality hasn't been determined yet.
     pub directed: Option<bool>,
-
-    /// Whether this is a shadow link.
-    ///
-    /// Shadow links are duplicates that appear at the "other end" of an edge
-    /// to improve visualization of local structure.
     pub is_shadow: bool,
 }
 

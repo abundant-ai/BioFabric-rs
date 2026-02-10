@@ -1,7 +1,4 @@
-//! Node similarity layout algorithm.
-//!
-//! This layout orders nodes by their structural similarity, with two modes:
-//! **Resort** and **Clustered**.
+//! Node similarity layout.
 
 use super::traits::{LayoutParams, LayoutResult, NodeLayout};
 use crate::model::{Network, NodeId};
@@ -11,19 +8,14 @@ use crate::worker::ProgressMonitor;
 // Public types
 // ============================================================================
 
-/// Which similarity algorithm to use.
+/// Similarity algorithm mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SimilarityMode {
-    /// Resort mode: iteratively improve default layout by grouping nodes
-    /// with similar connection patterns together.
     Resort,
-    /// Clustered mode: order nodes by structural similarity.
     Clustered,
 }
 
-/// Node similarity layout algorithm.
-///
-/// Orders nodes by structural similarity using either resort or clustered mode.
+/// Node similarity layout.
 #[derive(Debug, Clone)]
 pub struct NodeSimilarityLayout {
     mode: SimilarityMode,

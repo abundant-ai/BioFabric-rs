@@ -1,11 +1,4 @@
-//! Hierarchical DAG layout algorithm.
-//!
-//! Orders nodes by their level in a directed acyclic graph (DAG). Nodes at
-//! the same level are placed in adjacent rows, and level boundaries are
-//! marked with annotations.
-//!
-//! The network must be a DAG (no cycles). Use [`crate::analysis::cycle`] to
-//! verify before applying this layout.
+//! Hierarchical DAG layout.
 
 use super::build_data::LayoutBuildData;
 use super::traits::{EdgeLayout, LayoutError, LayoutParams, LayoutResult, NodeLayout};
@@ -14,8 +7,6 @@ use crate::model::{Network, NodeId};
 use crate::worker::ProgressMonitor;
 
 /// Hierarchical DAG node layout.
-///
-/// Places nodes in rows grouped by their DAG level.
 #[derive(Debug, Clone, Default)]
 pub struct HierDAGLayout;
 
@@ -56,7 +47,7 @@ impl HierDAGLayout {
     }
 }
 
-/// Edge layout variant for hierarchical DAG networks.
+/// Edge layout for hierarchical DAG.
 #[derive(Debug, Clone, Default)]
 pub struct HierDAGEdgeLayout;
 

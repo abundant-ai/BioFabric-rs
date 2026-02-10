@@ -1,7 +1,4 @@
-//! Control-top layout algorithm.
-//!
-//! Places designated "control" nodes at the top of the layout, followed by
-//! their targets ordered using various strategies.
+//! Control-top layout.
 
 use super::traits::{LayoutError, LayoutParams, LayoutResult, NodeLayout};
 use crate::model::{Network, NodeId};
@@ -11,52 +8,35 @@ use std::collections::{HashMap, HashSet, VecDeque};
 /// How to order control nodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ControlOrder {
-    /// Topological partial order.
     #[default]
     PartialOrder,
-    /// By intra-control-set connectivity.
     IntraDegree,
-    /// By median degree of their targets.
     MedianTargetDegree,
-    /// Simple degree ordering.
     DegreeOnly,
-    /// User-provided fixed list.
     FixedList,
 }
 
-/// How to order target nodes (non-control nodes).
+/// How to order target nodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TargetOrder {
-    /// Gray code ordering.
     #[default]
     GrayCode,
-    /// Odometer-style degree ordering.
     DegreeOdometer,
-    /// By target degree.
     TargetDegree,
-    /// Breadth-first from controllers.
     BreadthOrder,
 }
 
 /// Control-top layout configuration.
 #[derive(Debug, Clone, Default)]
 pub struct ControlTopLayoutParams {
-    /// How to order the control nodes.
     pub control_order: ControlOrder,
-    /// How to order target nodes.
     pub target_order: TargetOrder,
-    /// Explicit list of control node IDs (if using FixedList mode,
-    /// this is the order; otherwise, it identifies which nodes are controllers).
     pub control_nodes: Vec<NodeId>,
 }
 
 /// Control-top layout.
-///
-/// Places control nodes at the top, targets below, using the specified
-/// ordering strategies.
 #[derive(Debug, Clone, Default)]
 pub struct ControlTopLayout {
-    /// Layout configuration.
     pub config: ControlTopLayoutParams,
 }
 

@@ -1,7 +1,4 @@
 //! BioFabric XML session format (.bif).
-//!
-//! The XML format preserves a complete BioFabric session: network data,
-//! layout state, annotations, display options, and alignment data.
 
 use super::session::Session;
 use super::ParseError;

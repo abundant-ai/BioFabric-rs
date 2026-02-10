@@ -1,24 +1,4 @@
 //! SIF (Simple Interaction Format) parser.
-//!
-//! The SIF format is a simple text format for representing networks:
-//!
-//! ```text
-//! # Comments start with #
-//! nodeA relation nodeB
-//! nodeA relation nodeC
-//! nodeD relation nodeE
-//! isolatedNode
-//! ```
-//!
-//! Each line contains either:
-//! - Three tokens: `source relation target` (defines an edge)
-//! - One token: `node` (defines an isolated node with no edges)
-//!
-//! Tokens can be separated by tabs or spaces.
-//!
-//! ## References
-//!
-//! - Cytoscape SIF format: <https://cytoscape.org/manual/Cytoscape3_10_0Manual.pdf>
 
 use super::{ImportStats, ParseError};
 use crate::model::{Link, Network};

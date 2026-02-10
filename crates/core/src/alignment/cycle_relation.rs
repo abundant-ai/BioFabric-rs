@@ -1,73 +1,42 @@
-//! Alignment cycle relation naming.
-//!
-//! In the CYCLE layout view, edges between nodes in the same alignment
-//! cycle/path are assigned special **relation names** that encode the
-//! cycle structure. These relation names serve as the link group labels,
-//! driving both the edge ordering and the link-group annotations.
-//!
+//! Cycle relation naming for alignment layout.
 
 use super::cycle::{AlignmentCyclePath, AlignmentCycles, CycleCase};
 use crate::model::NodeId;
 use std::collections::HashMap;
 
 /// Position of a node within its alignment cycle/path.
-///
-/// Used to generate the relation name for edges in the CYCLE layout view.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CyclePosition {
-    /// Node is a correctly aligned singleton.
     Correct,
-
-    /// Node is at ordinal position `index` within an incorrect cycle/path.
-    /// (0 = first, 1 = second, etc.)
     Ordinal(usize),
 }
 
 impl CyclePosition {
-    /// Convert to the single-character code used in relation names.
     pub fn code(&self) -> String {
         todo!()
     }
 }
 
 /// Build the relation name for an edge between two nodes in the cycle view.
-///
-/// # Arguments
-///
-/// * `source_pos` — Cycle position of the source node
-/// * `target_pos` — Cycle position of the target node
-///
-/// # Returns
-///
-/// A relation string like `"CC"`, `"01"`, `"C2"`, etc.
 pub fn cycle_relation(source_pos: CyclePosition, target_pos: CyclePosition) -> String {
         todo!()
     }
 
 /// Map from node ID to its cycle position.
-///
-/// Built from the detected [`AlignmentCycles`] and used during edge layout
-/// to assign relation names.
 #[derive(Debug, Clone, Default)]
 pub struct CyclePositionMap {
-    /// Node ID → cycle position.
     positions: HashMap<NodeId, CyclePosition>,
 }
 
 impl CyclePositionMap {
-    /// Build the position map from detected alignment cycles.
     pub fn from_cycles(cycles: &AlignmentCycles) -> Self {
         todo!()
     }
 
-    /// Get the cycle position for a node.
     pub fn get(&self, node: &NodeId) -> Option<CyclePosition> {
         todo!()
     }
 
-    /// Build the relation name for an edge between two nodes.
-    ///
-    /// Returns `None` if either node is not in the position map.
     pub fn relation_for_edge(&self, source: &NodeId, target: &NodeId) -> Option<String> {
         todo!()
     }

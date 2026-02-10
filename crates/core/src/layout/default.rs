@@ -1,4 +1,4 @@
-//! Default layout algorithms for BioFabric.
+//! Default layout algorithms.
 
 use super::build_data::LayoutBuildData;
 use super::result::{LinkLayout, NetworkLayout, NodeLayout as NodeLayoutInfo};
@@ -7,7 +7,7 @@ use crate::model::{Annotation, AnnotationSet, Network, NodeId};
 use crate::worker::ProgressMonitor;
 use std::collections::HashMap;
 
-/// Default node layout algorithm.
+/// Default node layout.
 #[derive(Debug, Clone, Default)]
 pub struct DefaultNodeLayout;
 
@@ -33,10 +33,7 @@ impl NodeLayout for DefaultNodeLayout {
     }
 }
 
-/// Default edge layout algorithm.
-///
-/// Assigns edges to columns, computing both shadow-on and shadow-off
-/// column assignments so that toggling shadows is O(1).
+/// Default edge layout.
 #[derive(Debug, Clone, Default)]
 pub struct DefaultEdgeLayout;
 
@@ -47,14 +44,6 @@ impl DefaultEdgeLayout {
     }
 
     /// Calculate link group annotations for the placed links.
-    ///
-    /// # Arguments
-    ///
-    /// * `layout` — The completed network layout with links in column order
-    /// * `shadow` — If `true`, process all links. If `false`, skip shadow links.
-    /// * `link_groups` — Ordered list of relation types (defines color assignment)
-    /// * `color_map` — Optional mapping from relation type → color string.
-    ///   If `None`, colors are auto-generated from the link group order.
     pub fn calc_group_link_annots(
         layout: &NetworkLayout,
         shadow: bool,
@@ -73,8 +62,7 @@ impl DefaultEdgeLayout {
         todo!()
     }
 
-    /// Find the best suffix match for an augmented relation against the
-    /// link group list.
+    /// Find the best suffix match for an augmented relation against link groups.
     pub fn best_suffix_match<'a>(
         aug_relation: &str,
         link_groups: &'a [String],
@@ -99,8 +87,6 @@ impl EdgeLayout for DefaultEdgeLayout {
 }
 
 /// Build a layout from a fixed link order (EDA import).
-///
-/// Each entry in `eda_entries` is `(source, target, relation, is_shadow, column)`.
 pub fn layout_from_fixed_link_order(
     node_order: &[NodeId],
     eda_entries: &[(String, String, String, bool, usize)],
