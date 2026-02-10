@@ -58,7 +58,6 @@ fn help_flag() {
         .success()
         .stdout(predicate::str::contains("network visualization"))
         .stdout(predicate::str::contains("layout"))
-        .stdout(predicate::str::contains("render"))
         .stdout(predicate::str::contains("info"))
         .stdout(predicate::str::contains("convert"))
         .stdout(predicate::str::contains("align"))
@@ -97,15 +96,6 @@ fn layout_help() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Compute a layout"));
-}
-
-#[test]
-fn render_help() {
-    biofabric()
-        .args(["render", "--help"])
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("Render"));
 }
 
 #[test]
@@ -572,53 +562,6 @@ fn layout_quiet_flag() {
         .assert()
         .success()
         .stderr(predicate::str::is_empty());
-}
-
-// =========================================================================
-// Render command
-// =========================================================================
-
-#[test]
-fn render_triangle_png() {
-    let tmp = TempDir::new().unwrap();
-    let out = tmp.path().join("out.png");
-
-    biofabric()
-        .args([
-            "render",
-            &test_sif("triangle.sif"),
-            "-o",
-            out.to_str().unwrap(),
-            "--width",
-            "100",
-            "--height",
-            "100",
-        ])
-        .assert()
-        .success();
-
-    assert!(out.exists());
-    assert!(fs::metadata(&out).unwrap().len() > 0);
-}
-
-#[test]
-fn render_auto_height() {
-    let tmp = TempDir::new().unwrap();
-    let out = tmp.path().join("out.png");
-
-    biofabric()
-        .args([
-            "render",
-            &test_sif("triangle.sif"),
-            "-o",
-            out.to_str().unwrap(),
-            "--width",
-            "200",
-        ])
-        .assert()
-        .success();
-
-    assert!(out.exists());
 }
 
 // =========================================================================

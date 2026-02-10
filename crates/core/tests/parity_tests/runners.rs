@@ -1276,21 +1276,24 @@ pub fn produce_bif_string(cfg: &ParityConfig) -> String {
     biofabric_core::io::xml::write_session_string(&session).unwrap()
 }
 
-/// Run a BIF (session XML) parity test — exact byte-for-byte comparison.
+/// Run a BIF (session XML) parity test.
+///
+/// The `<colors>` section is normalized (sorted) before comparison so that
+/// the test is independent of the order in which color entries are written.
 #[allow(dead_code)]
 pub fn run_bif_test(cfg: &ParityConfig) {
     golden_available(cfg.golden_dirname, "output.bif");
-    let golden_bif = read_golden(cfg.golden_dirname, "output.bif");
-    let actual_bif = produce_bif_string(cfg);
+    let golden_bif = normalize_bif_colors(&read_golden(cfg.golden_dirname, "output.bif"));
+    let actual_bif = normalize_bif_colors(&produce_bif_string(cfg));
     assert_parity("BIF", &golden_bif, &actual_bif);
 }
 
-/// Same as run_bif_test but strips nid="..." attributes before comparing.
+/// Same as run_bif_test but also strips nid="..." attributes before comparing.
 #[allow(dead_code)]
 pub fn run_bif_test_nid_normalized(cfg: &ParityConfig) {
     golden_available(cfg.golden_dirname, "output.bif");
-    let golden_bif = read_golden(cfg.golden_dirname, "output.bif");
-    let actual_bif = produce_bif_string(cfg);
+    let golden_bif = normalize_bif_colors(&read_golden(cfg.golden_dirname, "output.bif"));
+    let actual_bif = normalize_bif_colors(&produce_bif_string(cfg));
     assert_parity_bif_nid_normalized("BIF", &golden_bif, &actual_bif);
 }
 
@@ -1348,13 +1351,13 @@ pub fn run_eda_test_unordered(cfg: &ParityConfig) {
     assert_parity_unordered("EDA", &golden_eda, &actual_eda);
 }
 
-/// Run BIF test with NID normalization and unordered node/link sections.
+/// Run BIF test with NID normalization, color normalization, and unordered node/link sections.
 #[allow(dead_code)]
 pub fn run_bif_test_unordered(cfg: &ParityConfig) {
     golden_available(cfg.golden_dirname, "output.bif");
     let golden_bif = read_golden(cfg.golden_dirname, "output.bif");
     let actual_bif = produce_bif_string(cfg);
-    let expected_norm = normalize_bif_nids(&golden_bif);
-    let actual_norm = normalize_bif_nids(&actual_bif);
+    let expected_norm = normalize_bif_colors(&normalize_bif_nids(&golden_bif));
+    let actual_norm = normalize_bif_colors(&normalize_bif_nids(&actual_bif));
     assert_parity_bif_sections_unordered("BIF", &expected_norm, &actual_norm);
 }

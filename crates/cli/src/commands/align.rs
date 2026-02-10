@@ -106,66 +106,9 @@ pub fn run(args: AlignArgs, quiet: bool) -> Result<(), Box<dyn std::error::Error
                 );
                 FabricFactory::save_session(&session, output)?;
             }
-            "png" | "jpg" | "jpeg" | "tiff" | "tif" => {
-                use biofabric_core::export::{ExportOptions, ImageExporter, ImageFormat};
-                use biofabric_core::render::color::ColorPalette;
-                use biofabric_core::render::gpu_data::RenderOutput;
-                use biofabric_core::render::viewport::{RenderParams, Viewport};
-
-                let height = if args.height == 0 {
-                    if layout.column_count == 0 {
-                        args.width
-                    } else {
-                        let ratio = layout.row_count as f64 / layout.column_count as f64;
-                        (args.width as f64 * ratio).max(1.0) as u32
-                    }
-                } else {
-                    args.height
-                };
-
-                let format = match ext {
-                    "jpg" | "jpeg" => ImageFormat::Jpeg,
-                    "tiff" | "tif" => ImageFormat::Tiff,
-                    _ => ImageFormat::Png,
-                };
-
-                let total_cols = if show_shadows {
-                    layout.column_count
-                } else {
-                    layout.column_count_no_shadows
-                };
-                let viewport = Viewport::new(
-                    0.0, 0.0,
-                    total_cols as f64,
-                    layout.row_count as f64,
-                );
-                let ppgu = if layout.row_count > 0 && total_cols > 0 {
-                    (height as f64 / layout.row_count as f64)
-                        .min(args.width as f64 / total_cols as f64)
-                } else {
-                    1.0
-                };
-                let render_params = RenderParams::new(
-                    viewport, ppgu, args.width, height, show_shadows,
-                );
-                let palette = ColorPalette::alignment_palette();
-                let render = RenderOutput::extract(&layout, &render_params, &palette);
-
-                let export_opts = ExportOptions {
-                    format,
-                    width_px: args.width,
-                    height_px: height,
-                    dpi: 300,
-                    background_color: "#FFFFFF".to_string(),
-                    ..Default::default()
-                };
-
-                ImageExporter::export_to_file(&render, &export_opts, output, &NoopMonitor)
-                    .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
-            }
             _ => {
                 return Err(format!(
-                    "Unsupported output format '{}'. Use .json, .bif, .xml, .png, .jpg, or .tiff",
+                    "Unsupported output format '{}'. Use .json, .bif, or .xml",
                     ext
                 )
                 .into());

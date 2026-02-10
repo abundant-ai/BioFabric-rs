@@ -32,7 +32,7 @@
 use crate::alignment::scoring::AlignmentScores;
 use crate::layout::result::NetworkLayout;
 use crate::model::Network;
-use crate::render::display_options::DisplayOptions;
+use crate::io::display_options::DisplayOptions;
 use serde::{Deserialize, Serialize};
 
 /// A complete BioFabric session.

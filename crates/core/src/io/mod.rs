@@ -25,6 +25,8 @@
 pub mod align;
 pub mod annotation;
 pub mod attribute;
+pub mod color;
+pub mod display_options;
 pub mod factory;
 pub mod gw;
 pub mod json;

@@ -13,20 +13,11 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 indexmap.workspace = true
-bytemuck.workspace = true
-image = { workspace = true, optional = true }
-rayon = { workspace = true, optional = true }
 
 [dev-dependencies]
 pretty_assertions.workspace = true
 tempfile.workspace = true
 paste.workspace = true
-image.workspace = true
-
-[features]
-default = []
-parallel = ["rayon"]
-png_export = ["image"]
 
 [lib]
 name = "biofabric_core"

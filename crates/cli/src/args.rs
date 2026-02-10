@@ -16,14 +16,8 @@ pub enum Commands {
     ///
     /// Reads a network, applies the specified layout algorithm, and writes
     /// the computed layout to a JSON file (or stdout). The layout can later
-    /// be rendered, exported, or saved as a BioFabric XML session.
+    /// be exported or saved as a BioFabric XML session.
     Layout(LayoutArgs),
-
-    /// Render a network to an image file (PNG, JPEG, TIFF).
-    ///
-    /// Computes a layout (or loads one from a session file) and rasterizes
-    /// the BioFabric visualization to the specified image format.
-    Render(RenderArgs),
 
     /// Print information about a network file.
     ///
@@ -161,70 +155,6 @@ pub struct LayoutArgs {
     /// layout algorithm. The file must list every node in the network.
     #[arg(long)]
     pub node_order: Option<PathBuf>,
-}
-
-// ==========================================================================
-// Render command
-// ==========================================================================
-
-#[derive(Args, Debug)]
-pub struct RenderArgs {
-    /// Input file: network (.sif, .gw, .json) or session (.bif, .xml).
-    ///
-    /// If a session file is provided, its saved layout is used directly.
-    /// Otherwise, a layout is computed using the specified algorithm.
-    pub input: PathBuf,
-
-    /// Output image file (.png, .jpg, .tiff).
-    #[arg(short, long, default_value = "output.png")]
-    pub output: PathBuf,
-
-    /// Image width in pixels.
-    #[arg(long, default_value_t = 1920)]
-    pub width: u32,
-
-    /// Image height in pixels.
-    ///
-    /// If 0, the height is computed automatically to maintain the
-    /// aspect ratio of the layout grid.
-    #[arg(long, default_value_t = 0)]
-    pub height: u32,
-
-    /// DPI (dots per inch) for the output image.
-    #[arg(long, default_value_t = 300)]
-    pub dpi: u32,
-
-    /// Layout algorithm (ignored if input is a session file with a layout).
-    #[arg(short, long, default_value = "default", value_enum)]
-    pub algorithm: LayoutAlgorithm,
-
-    /// Show shadow links in the rendered image.
-    #[arg(long, default_value_t = true)]
-    pub shadows: bool,
-
-    /// Disable shadow links in the rendered image.
-    #[arg(long)]
-    pub no_shadows: bool,
-
-    /// Show node labels (names beside each horizontal line).
-    #[arg(long)]
-    pub labels: bool,
-
-    /// Show link labels (relation names beside each vertical line).
-    #[arg(long)]
-    pub link_labels: bool,
-
-    /// Show annotation rectangles (node/link group backgrounds).
-    #[arg(long, default_value_t = true)]
-    pub annotations: bool,
-
-    /// Background color as hex (e.g., "#FFFFFF" or "#000000").
-    #[arg(long, default_value = "#FFFFFF")]
-    pub background: String,
-
-    /// Output image format (auto-detected from extension if not specified).
-    #[arg(long, value_enum)]
-    pub format: Option<ImageFormatArg>,
 }
 
 // ==========================================================================
@@ -582,14 +512,6 @@ pub enum ConvertFormat {
     Json,
     /// BioFabric XML session (.bif).
     Xml,
-}
-
-/// Image output formats.
-#[derive(ValueEnum, Debug, Clone, Copy)]
-pub enum ImageFormatArg {
-    Png,
-    Jpeg,
-    Tiff,
 }
 
 /// Info output format.

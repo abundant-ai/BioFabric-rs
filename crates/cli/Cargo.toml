@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-biofabric-core = { path = "../core", features = ["png_export"] }
+biofabric-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
 indicatif = "0.17"
 regex = "1"
