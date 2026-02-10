@@ -66,18 +66,3 @@ impl JaccardSimilarity {
     }
 }
 
-fn build_neighbor_map(network: &Network) -> HashMap<NodeId, HashSet<NodeId>> {
-        todo!()
-    }
-
-fn invert_alignment(alignment: &AlignmentMap) -> HashMap<NodeId, NodeId> {
-        todo!()
-    }
-
-fn jacc_sim_value(
-    node_a: &NodeId,
-    node_b: Option<&NodeId>,
-    neighbors: &HashMap<NodeId, HashSet<NodeId>>,
-) -> f64 {
-        todo!()
-    }

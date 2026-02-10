@@ -133,9 +133,7 @@ impl MergedNetwork {
         todo!()
     }
 
-    /// Node correctness (NC) metric: fraction of tracked nodes that are correct.
-    ///
-    /// NC = |{n : merged_to_correct[n] = true}| / |merged_to_correct|
+    /// Node correctness (NC) metric.
     ///
     /// Returns `None` if no perfect alignment was provided.
     pub fn node_correctness(&self) -> Option<f64> {

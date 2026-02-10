@@ -2,19 +2,6 @@
 //!
 //! Computes topological and evaluation measures for a network alignment.
 //!
-//! ## Topological Measures (no reference alignment needed)
-//!
-//! - **EC** (Edge Coverage): `covered / (covered + induced_G1)`
-//! - **S3** (Symmetric Substructure Score): `covered / (covered + induced_G1 + induced_G2)`
-//! - **ICS** (Induced Conserved Substructure): `covered / (covered + induced_G2)`
-//!
-//! ## Evaluation Measures (require a known-correct "perfect" alignment)
-//!
-//! - **NC** (Node Correctness): fraction of correctly aligned nodes
-//! - **NGS** (Node Group Similarity): angular similarity of node group ratio vectors
-//! - **LGS** (Link Group Similarity): angular similarity of link group ratio vectors
-//! - **JS** (Jaccard Similarity): average Jaccard similarity of aligned node neighborhoods
-//!
 
 use super::merge::MergedNetwork;
 use crate::io::align::AlignmentMap;
@@ -25,21 +12,21 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AlignmentScores {
     // -- Topological measures --
-    /// Edge Coverage: covered / (covered + induced_G1).
+    /// Edge Coverage.
     pub ec: f64,
-    /// Symmetric Substructure Score: covered / (covered + induced_G1 + induced_G2).
+    /// Symmetric Substructure Score.
     pub s3: f64,
-    /// Induced Conserved Substructure: covered / (covered + induced_G2).
+    /// Induced Conserved Substructure.
     pub ics: f64,
 
     // -- Evaluation measures (only populated if a perfect alignment is provided) --
-    /// Node Correctness: fraction of nodes aligned to their correct partner.
+    /// Node Correctness.
     pub nc: Option<f64>,
-    /// Node Group Similarity: angular similarity of node group ratio vectors.
+    /// Node Group Similarity.
     pub ngs: Option<f64>,
-    /// Link Group Similarity: angular similarity of link group ratio vectors.
+    /// Link Group Similarity.
     pub lgs: Option<f64>,
-    /// Jaccard Similarity: average Jaccard similarity of aligned neighborhoods.
+    /// Jaccard Similarity.
     pub js: Option<f64>,
 }
 
@@ -77,9 +64,7 @@ impl AlignmentScores {
         todo!()
     }
 
-    /// Build aligned node group ratio vectors for NGS computation.
-    ///
-    /// Creates vectors over the union of group tags from both maps.
+    /// Build aligned node group ratio vectors.
     fn aligned_ratio_vectors(
         main: &super::groups::NodeGroupMap,
         perfect: &super::groups::NodeGroupMap,
@@ -87,9 +72,7 @@ impl AlignmentScores {
         todo!()
     }
 
-    /// Build link group ratio vectors for LGS computation.
-    ///
-    /// Counts non-shadow edges by edge type for both merged networks.
+    /// Build link group ratio vectors.
     fn link_group_ratio_vectors(
         main: &MergedNetwork,
         perfect: &MergedNetwork,

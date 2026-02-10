@@ -29,7 +29,7 @@ impl NodeLayout for DefaultNodeLayout {
     }
 
     fn name(&self) -> &'static str {
-        "Default (BFS from highest degree)"
+        "Default Node Layout"
     }
 }
 
@@ -73,16 +73,6 @@ impl DefaultEdgeLayout {
         todo!()
     }
 
-    /// Build a default color map for link group annotations.
-    fn build_default_color_map(link_groups: &[String]) -> HashMap<String, String> {
-        todo!()
-    }
-
-    /// Get the annotation color for a relation type.
-    fn get_annot_color(relation: &str, color_map: &HashMap<String, String>) -> String {
-        todo!()
-    }
-
     /// Find the best suffix match for an augmented relation against the
     /// link group list.
     pub fn best_suffix_match<'a>(
@@ -104,7 +94,7 @@ impl EdgeLayout for DefaultEdgeLayout {
     }
 
     fn name(&self) -> &'static str {
-        "Default (minimize span)"
+        "Default Edge Layout"
     }
 }
 
@@ -133,43 +123,4 @@ mod tests {
     }
 
     // TODO: Enable tests once layout is implemented
-    //
-    // #[test]
-    // fn test_default_node_layout_linear() {
-    //     use crate::worker::NoopMonitor;
-    //     let network = create_test_network();
-    //     let layout = DefaultNodeLayout::new();
-    //     let order = layout.layout_nodes(&network, &Default::default(), &NoopMonitor).unwrap();
-    //
-    //     assert_eq!(order.len(), 3);
-    //     // B has highest degree (2), so should be first
-    //     assert_eq!(order[0], NodeId::new("B"));
-    // }
-    //
-    // #[test]
-    // fn test_default_edge_layout() {
-    //     use crate::worker::NoopMonitor;
-    //     let network = create_test_network();
-    //     let node_layout = DefaultNodeLayout::new();
-    //     let order = node_layout.layout_nodes(&network, &Default::default(), &NoopMonitor).unwrap();
-    //
-    //     let edge_layout = DefaultEdgeLayout::new();
-    //     let mut build_data = super::build_data::LayoutBuildData::new(
-    //         network,
-    //         order,
-    //         false,
-    //         Default::default(),
-    //     );
-    //     let result = edge_layout
-    //         .layout_edges(&mut build_data, &Default::default(), &NoopMonitor)
-    //         .unwrap();
-    //
-    //     assert_eq!(result.row_count, 3);
-    //     assert!(result.column_count > 0);
-    //
-    //     // Each node should have a layout entry
-    //     assert!(result.get_node(&NodeId::new("A")).is_some());
-    //     assert!(result.get_node(&NodeId::new("B")).is_some());
-    //     assert!(result.get_node(&NodeId::new("C")).is_some());
-    // }
 }

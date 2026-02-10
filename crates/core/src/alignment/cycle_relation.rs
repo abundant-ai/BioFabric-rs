@@ -5,30 +5,6 @@
 //! cycle structure. These relation names serve as the link group labels,
 //! driving both the edge ordering and the link-group annotations.
 //!
-//! ## Relation Name Format
-//!
-//! Each relation name is a two-character string `"XY"` where:
-//!
-//! - `X` = the position of the **source** node within its cycle/path
-//! - `Y` = the position of the **target** node within its cycle/path
-//!
-//! Position codes:
-//!
-//! | Code | Meaning |
-//! |------|---------|
-//! | `C`  | Correctly aligned singleton (case 3) |
-//! | `0`  | First node in a cycle/path (or a single incorrect node) |
-//! | `1`  | Second node in a cycle/path |
-//! | `2`  | Third node, etc. |
-//! | …    | Higher numbers for longer cycles |
-//!
-//! ## Examples
-//!
-//! - `"CC"` — Edge between two correctly aligned singletons
-//! - `"C0"` — Edge from a correct singleton to the start of an incorrect path
-//! - `"01"` — Edge from the first to the second node of an incorrect path
-//! - `"10"` — Edge from the second node back to the first (in a cycle)
-//!
 
 use super::cycle::{AlignmentCyclePath, AlignmentCycles, CycleCase};
 use crate::model::NodeId;
@@ -80,11 +56,6 @@ pub struct CyclePositionMap {
 
 impl CyclePositionMap {
     /// Build the position map from detected alignment cycles.
-    ///
-    /// For each cycle/path entry:
-    /// - Correct cases (1–3): all nodes get `CyclePosition::Correct`
-    /// - Incorrect cases (4–9): nodes get `CyclePosition::Ordinal(i)`
-    ///   where `i` is their index within the cycle/path node list
     pub fn from_cycles(cycles: &AlignmentCycles) -> Self {
         todo!()
     }
