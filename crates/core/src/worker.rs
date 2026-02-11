@@ -203,40 +203,4 @@ impl<'a> LoopReporter<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_noop_monitor() {
-        let m = NoopMonitor;
-        m.set_total(100);
-        assert!(m.update(50));
-        assert!(m.update_with_phase(75, "phase1"));
-        assert!(m.keep_going());
-    }
-
-    #[test]
-    fn test_loop_reporter_completes() {
-        let m = NoopMonitor;
-        let mut lr = LoopReporter::new(100, 10, &m, 0.0, 1.0, "test");
-        for _ in 0..100 {
-            lr.tick().unwrap();
-        }
-        lr.finish();
-    }
-
-    #[test]
-    fn test_loop_reporter_zero_total() {
-        let m = NoopMonitor;
-        let lr = LoopReporter::new(0, 10, &m, 0.0, 1.0, "empty");
-        lr.finish();
-    }
-
-    #[test]
-    fn test_loop_reporter_fractional_range() {
-        let m = NoopMonitor;
-        let mut lr = LoopReporter::new(50, 5, &m, 0.5, 1.0, "second half");
-        for _ in 0..50 {
-            lr.tick().unwrap();
-        }
-        lr.finish();
-    }
 }

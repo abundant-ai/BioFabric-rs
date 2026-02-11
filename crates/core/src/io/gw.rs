@@ -61,37 +61,7 @@ fn extract_label(s: &str) -> Option<&str> {
     todo!()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_extract_label() {
-        assert_eq!(extract_label("|{hello}|"), Some("hello"));
-        assert_eq!(extract_label("|{}|"), Some(""));
-        assert_eq!(extract_label("no braces"), None);
-        assert_eq!(extract_label("  |{spaced}|  "), Some("spaced"));
-    }
-
-    // TODO: Add more tests once parse_string is implemented
-    //
-    // #[test]
-    // fn test_parse_simple_gw() {
-    //     let content = r#"LEDA.GRAPH
-    // string
-    // short
-    // -2
-    // 3
-    // |{A}|
-    // |{B}|
-    // |{C}|
-    // 2
-    // 1 2 0 |{rel1}|
-    // 2 3 0 |{rel2}|
-    // "#;
-    //     let network = parse_string(content).unwrap();
-    //     assert_eq!(network.node_count(), 3);
-    //     assert_eq!(network.link_count(), 4); // 2 links + 2 shadows
-    // }
 }

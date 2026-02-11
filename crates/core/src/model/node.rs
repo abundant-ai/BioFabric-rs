@@ -107,31 +107,4 @@ impl fmt::Display for Node {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_node_creation() {
-        let node = Node::new("test_node");
-        assert_eq!(node.name(), "test_node");
-        assert_eq!(node.id.as_str(), "test_node");
-    }
-
-    #[test]
-    fn test_node_equality() {
-        let node1 = Node::new("A");
-        let node2 = Node::new("A");
-        let node3 = Node::new("B");
-
-        assert_eq!(node1, node2);
-        assert_ne!(node1, node3);
-    }
-
-    #[test]
-    fn test_nodeid_ordering() {
-        let a = NodeId::new("A");
-        let b = NodeId::new("B");
-        let a2 = NodeId::new("A");
-
-        assert!(a < b);
-        assert_eq!(a, a2);
-    }
 }

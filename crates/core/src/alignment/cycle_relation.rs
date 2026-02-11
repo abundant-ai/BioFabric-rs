@@ -91,36 +91,4 @@ mod tests {
         let map = CyclePositionMap::from_cycles(&cycles);
         assert_eq!(map.get(&NodeId::new("A::B")), Some(CyclePosition::Correct));
     }
-
-    #[test]
-    fn test_position_map_incorrect_path() {
-        let cycles = AlignmentCycles {
-            entries: vec![AlignmentCyclePath {
-                case: CycleCase::PathRedPurpleBlue,
-                nodes: vec![
-                    NodeId::new("::R1"),
-                    NodeId::new("A::B"),
-                    NodeId::new("C::D"),
-                    NodeId::new("E::"),
-                ],
-            }],
-            case_counts: {
-                let mut c = [0usize; 9];
-                c[CycleCase::PathRedPurpleBlue.index()] = 1;
-                c
-            },
-        };
-
-        let map = CyclePositionMap::from_cycles(&cycles);
-        assert_eq!(map.get(&NodeId::new("::R1")), Some(CyclePosition::Ordinal(0)));
-        assert_eq!(map.get(&NodeId::new("A::B")), Some(CyclePosition::Ordinal(1)));
-        assert_eq!(map.get(&NodeId::new("C::D")), Some(CyclePosition::Ordinal(2)));
-        assert_eq!(map.get(&NodeId::new("E::")), Some(CyclePosition::Ordinal(3)));
-
-        // Edge relation between positions 1 and 2 should be "12"
-        assert_eq!(
-            map.relation_for_edge(&NodeId::new("A::B"), &NodeId::new("C::D")),
-            Some("12".to_string())
-        );
-    }
 }

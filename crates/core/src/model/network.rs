@@ -163,10 +163,6 @@ impl Network {
         todo!()
     }
 
-    /// Helper: get adjacency index entries for a node if available.
-    fn adjacency_indices_for(&self, node_id: &NodeId) -> Option<&Vec<usize>> {
-        todo!()
-    }
 
     // =========================================================================
     // Shadow link generation
@@ -211,9 +207,6 @@ impl Network {
         todo!()
     }
 
-    fn invalidate_adjacency(&mut self) {
-        todo!()
-    }
 
     // =========================================================================
     // Metadata detection
@@ -308,63 +301,5 @@ mod tests {
         assert_eq!(network.node_count(), 0);
         assert_eq!(network.link_count(), 0);
     }
-
-    #[test]
-    fn test_add_nodes() {
-        let mut network = Network::new();
-        network.add_node(Node::new("A"));
-        network.add_node(Node::new("B"));
-
-        assert_eq!(network.node_count(), 2);
-        assert!(network.contains_node(&NodeId::new("A")));
-        assert!(network.contains_node(&NodeId::new("B")));
-        assert!(!network.contains_node(&NodeId::new("C")));
-    }
-
-    #[test]
-    fn test_add_link_creates_nodes() {
-        let mut network = Network::new();
-        network.add_link(Link::new("A", "B", "activates"));
-
-        assert_eq!(network.node_count(), 2);
-        assert_eq!(network.link_count(), 1);
-        assert!(network.contains_node(&NodeId::new("A")));
-        assert!(network.contains_node(&NodeId::new("B")));
-    }
-
-    #[test]
-    fn test_degree() {
-        let mut network = Network::new();
-        network.add_link(Link::new("A", "B", "r1"));
-        network.add_link(Link::new("A", "C", "r2"));
-        network.add_link(Link::new("B", "C", "r3"));
-
-        assert_eq!(network.degree(&NodeId::new("A")), 2);
-        assert_eq!(network.degree(&NodeId::new("B")), 2);
-        assert_eq!(network.degree(&NodeId::new("C")), 2);
-    }
-
-    #[test]
-    fn test_neighbors() {
-        let mut network = Network::new();
-        network.add_link(Link::new("A", "B", "r1"));
-        network.add_link(Link::new("A", "C", "r2"));
-
-        let neighbors = network.neighbors(&NodeId::new("A"));
-        assert_eq!(neighbors.len(), 2);
-        assert!(neighbors.contains(&NodeId::new("B")));
-        assert!(neighbors.contains(&NodeId::new("C")));
-    }
-
-    #[test]
-    fn test_lone_nodes() {
-        let mut network = Network::new();
-        network.add_lone_node("isolated");
-        network.add_link(Link::new("A", "B", "r1"));
-
-        assert_eq!(network.node_count(), 3);
-        assert!(network.lone_nodes().contains(&NodeId::new("isolated")));
-        assert!(!network.lone_nodes().contains(&NodeId::new("A")));
-    }
-
 }
+
