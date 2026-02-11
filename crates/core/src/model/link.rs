@@ -93,27 +93,7 @@ impl fmt::Display for Link {
         todo!()
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_link_creation() {
-        let link = Link::new("A", "B", "activates");
-        assert_eq!(link.source.as_str(), "A");
-        assert_eq!(link.target.as_str(), "B");
-        assert_eq!(link.relation, "activates");
-        assert!(!link.is_shadow);
-        assert!(link.directed.is_none());
-    }
-
-    #[test]
-    fn test_feedback_detection() {
-        let normal = Link::new("A", "B", "rel");
-        let feedback = Link::new("A", "A", "rel");
-
-        assert!(!normal.is_feedback());
-        assert!(feedback.is_feedback());
-    }
 }

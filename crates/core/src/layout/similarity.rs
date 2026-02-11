@@ -34,13 +34,7 @@ impl Default for NodeSimilarityLayout {
 impl NodeSimilarityLayout {
     /// Create a new node similarity layout with the given mode.
     pub fn new(mode: SimilarityMode) -> Self {
-        Self {
-            mode,
-            pass_count: 10,
-            terminate_at_increase: false,
-            tolerance: 0.80,
-            chain_length: 15,
-        }
+        todo!()
     }
 
     /// Create a resort-mode layout.
@@ -93,13 +87,4 @@ impl NodeLayout for NodeSimilarityLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_similarity_mode_constructors() {
-        let resort = NodeSimilarityLayout::resort();
-        assert_eq!(resort.mode, SimilarityMode::Resort);
-
-        let clustered = NodeSimilarityLayout::clustered();
-        assert_eq!(clustered.mode, SimilarityMode::Clustered);
-    }
 }

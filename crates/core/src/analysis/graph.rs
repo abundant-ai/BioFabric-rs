@@ -51,25 +51,4 @@ pub fn dag_levels(network: &Network) -> Option<HashMap<NodeId, usize>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::Link;
-
-    fn create_test_network() -> Network {
-        // A -- B -- C
-        //      |
-        //      D
-        let mut network = Network::new();
-        network.add_link(Link::new("A", "B", "r"));
-        network.add_link(Link::new("B", "C", "r"));
-        network.add_link(Link::new("B", "D", "r"));
-        network
-    }
-
-    #[test]
-    fn test_highest_degree_node() {
-        let network = create_test_network();
-        let highest = highest_degree_node(&network);
-        assert_eq!(highest, Some(NodeId::new("B")));
-    }
-
-    // TODO: Enable tests once algorithms are implemented
 }

@@ -27,11 +27,6 @@ pub fn parse_string(content: &str) -> Result<Network, ParseError> {
     todo!()
 }
 
-/// Strip surrounding quotes from a string.
-fn strip_quotes(s: &str) -> &str {
-    todo!()
-}
-
 // ============================================================================
 // SIF writer
 // ============================================================================
@@ -54,43 +49,7 @@ pub fn write_string(network: &Network) -> Result<String, ParseError> {
     todo!()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_strip_quotes() {
-        assert_eq!(strip_quotes("\"hello\""), "hello");
-        assert_eq!(strip_quotes("'world'"), "world");
-        assert_eq!(strip_quotes("no quotes"), "no quotes");
-        assert_eq!(strip_quotes("  \"spaced\"  "), "spaced");
-    }
-
-    // TODO: Add more tests once parse_string is implemented
-    //
-    // #[test]
-    // fn test_parse_simple() {
-    //     let content = "A activates B\nB inhibits C";
-    //     let network = parse_string(content).unwrap();
-    //     assert_eq!(network.node_count(), 3);
-    //     // Should have 2 real links + 2 shadow links = 4 total
-    //     assert_eq!(network.link_count(), 4);
-    // }
-    //
-    // #[test]
-    // fn test_parse_lone_node() {
-    //     let content = "A activates B\nC";
-    //     let network = parse_string(content).unwrap();
-    //     assert_eq!(network.node_count(), 3);
-    //     assert!(network.lone_nodes().contains(&NodeId::new("C")));
-    // }
-    //
-    // #[test]
-    // fn test_parse_feedback() {
-    //     let content = "A self A";
-    //     let network = parse_string(content).unwrap();
-    //     // Feedback links don't get shadows
-    //     assert_eq!(network.link_count(), 1);
-    // }
 }

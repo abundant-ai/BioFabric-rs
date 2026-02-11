@@ -41,22 +41,6 @@ impl AlignmentScores {
     ) -> Self {
         todo!()
     }
-
-    /// Build aligned node group ratio vectors.
-    fn aligned_ratio_vectors(
-        main: &super::groups::NodeGroupMap,
-        perfect: &super::groups::NodeGroupMap,
-    ) -> (Vec<f64>, Vec<f64>) {
-        todo!()
-    }
-
-    /// Build link group ratio vectors.
-    fn link_group_ratio_vectors(
-        main: &MergedNetwork,
-        perfect: &MergedNetwork,
-    ) -> (Vec<f64>, Vec<f64>) {
-        todo!()
-    }
 }
 
 /// Compute Jaccard similarity between two sets.
