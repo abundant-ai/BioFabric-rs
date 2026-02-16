@@ -14,6 +14,9 @@ export interface ScenePrepInput {
   linkColorsRgba: Float32Array;
   linkRelations: string[];
   alignmentView: AlignmentViewMode;
+  zoomPxPerWorld: number;
+  minNodeSpanPx: number;
+  minLinkSpanPx: number;
 }
 
 export interface PreparedSceneBuffers {
@@ -39,18 +42,11 @@ export function relationIncluded(relation: string, view: AlignmentViewMode): boo
   return true;
 }
 
-function lineCountForNodes(minCols: Float32Array, maxCols: Float32Array): number {
-  let count = 0;
-  for (let i = 0; i < minCols.length; i += 1) {
-    if (maxCols[i] >= minCols[i]) {
-      count += 1;
-    }
-  }
-  return count;
-}
-
 function lineCountForLinks(
   cols: Float32Array,
+  topRows: Float32Array,
+  bottomRows: Float32Array,
+  minWorldSpan: number,
   relations: string[],
   view: AlignmentViewMode,
 ): number {
@@ -60,6 +56,10 @@ function lineCountForLinks(
       continue;
     }
     if (!relationIncluded(relations[i] ?? "", view)) {
+      continue;
+    }
+    const span = bottomRows[i] - topRows[i];
+    if (span < minWorldSpan) {
       continue;
     }
     count += 1;
@@ -96,11 +96,39 @@ function writeLine(
 }
 
 export function buildPreparedSceneBuffers(input: ScenePrepInput): PreparedSceneBuffers {
-  const nodeLineCountShadow = lineCountForNodes(input.nodeMinCols, input.nodeMaxCols);
-  const nodeLineCountNoShadows = lineCountForNodes(input.nodeMinColsNoShadows, input.nodeMaxColsNoShadows);
-  const linkLineCountShadow = lineCountForLinks(input.linkCols, input.linkRelations, input.alignmentView);
+  const zoom = Math.max(input.zoomPxPerWorld, 1e-6);
+  const minNodeWorldSpan = Math.max(0, input.minNodeSpanPx) / zoom;
+  const minLinkWorldSpan = Math.max(0, input.minLinkSpanPx) / zoom;
+
+  const lineCountForNodesWithThreshold = (minCols: Float32Array, maxCols: Float32Array): number => {
+    let count = 0;
+    for (let i = 0; i < minCols.length; i += 1) {
+      const span = maxCols[i] - minCols[i];
+      if (span >= minNodeWorldSpan) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  const nodeLineCountShadow = lineCountForNodesWithThreshold(input.nodeMinCols, input.nodeMaxCols);
+  const nodeLineCountNoShadows = lineCountForNodesWithThreshold(
+    input.nodeMinColsNoShadows,
+    input.nodeMaxColsNoShadows,
+  );
+  const linkLineCountShadow = lineCountForLinks(
+    input.linkCols,
+    input.linkTopRows,
+    input.linkBottomRows,
+    minLinkWorldSpan,
+    input.linkRelations,
+    input.alignmentView,
+  );
   const linkLineCountNoShadows = lineCountForLinks(
     input.linkColsNoShadows,
+    input.linkTopRows,
+    input.linkBottomRows,
+    minLinkWorldSpan,
     input.linkRelations,
     input.alignmentView,
   );
@@ -120,7 +148,7 @@ export function buildPreparedSceneBuffers(input: ScenePrepInput): PreparedSceneB
     const a = input.nodeColorsRgba[colorOffset + 3];
     const y = input.nodeRows[i];
 
-    if (input.nodeMaxCols[i] >= input.nodeMinCols[i]) {
+    if (input.nodeMaxCols[i] - input.nodeMinCols[i] >= minNodeWorldSpan) {
       nodeShadowOffset = writeLine(
         nodeVerticesShadow,
         nodeShadowOffset,
@@ -135,7 +163,7 @@ export function buildPreparedSceneBuffers(input: ScenePrepInput): PreparedSceneB
       );
     }
 
-    if (input.nodeMaxColsNoShadows[i] >= input.nodeMinColsNoShadows[i]) {
+    if (input.nodeMaxColsNoShadows[i] - input.nodeMinColsNoShadows[i] >= minNodeWorldSpan) {
       nodeNoShadowOffset = writeLine(
         nodeVerticesNoShadows,
         nodeNoShadowOffset,
@@ -165,6 +193,9 @@ export function buildPreparedSceneBuffers(input: ScenePrepInput): PreparedSceneB
     const a = input.linkColorsRgba[colorOffset + 3];
     const yTop = input.linkTopRows[i];
     const yBottom = input.linkBottomRows[i];
+    if (yBottom - yTop < minLinkWorldSpan) {
+      continue;
+    }
 
     const shadowCol = input.linkCols[i];
     if (shadowCol >= 0) {

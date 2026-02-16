@@ -442,6 +442,9 @@ export function App() {
       linkColorsRgba: scene.linkColorsRgba,
       linkRelations: scene.linkRelations,
       alignmentView,
+      zoomPxPerWorld: camera.zoom,
+      minNodeSpanPx: displayOptions.minNodeSpanPx,
+      minLinkSpanPx: displayOptions.minLinkSpanPx,
     };
 
     setIsPreparing(true);
@@ -454,7 +457,13 @@ export function App() {
       setPreparedBuffers(buildPreparedSceneBuffers(payloadForPrep));
       setIsPreparing(false);
     }
-  }, [scene, alignmentView]);
+  }, [
+    scene,
+    alignmentView,
+    camera.zoom,
+    displayOptions.minNodeSpanPx,
+    displayOptions.minLinkSpanPx,
+  ]);
 
   useEffect(() => {
     const canvas = baseCanvasRef.current;

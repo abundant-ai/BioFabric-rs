@@ -13,6 +13,7 @@ This folder contains the React + TypeScript frontend for interactive BioFabric r
 - Scene preparation worker:
   - Builds packed line vertex buffers off the UI thread
   - Supports alignment view relation filtering (`all/group/orphan/cycle`)
+  - Applies zoom-aware LOD culling from display thresholds
 - Rendering pipeline:
   - WebGL2 line renderer (with CPU 2D fallback)
   - Overlay pass for annotations, labels, selection, and marquee box
