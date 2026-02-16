@@ -626,6 +626,76 @@ fn render_layout_json_to_png_file() {
 }
 
 #[test]
+fn render_network_json_to_png_file() {
+    let tmp = TempDir::new().unwrap();
+    let network_file = tmp.path().join("network.json");
+    let out = tmp.path().join("network.png");
+
+    biofabric()
+        .args([
+            "convert",
+            &test_sif("triangle.sif"),
+            "--format",
+            "json",
+            "-o",
+            network_file.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    biofabric()
+        .args([
+            "render",
+            network_file.to_str().unwrap(),
+            "-o",
+            out.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    let meta = fs::metadata(&out).unwrap();
+    assert!(meta.len() > 256);
+}
+
+#[test]
+fn render_bif_session_to_png_file() {
+    let tmp = TempDir::new().unwrap();
+    let session_file = tmp.path().join("session.bif");
+    let out = tmp.path().join("session.png");
+
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("triangle.sif"),
+            "-o",
+            session_file.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    biofabric()
+        .args([
+            "render",
+            session_file.to_str().unwrap(),
+            "-o",
+            out.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    let meta = fs::metadata(&out).unwrap();
+    assert!(meta.len() > 256);
+}
+
+#[test]
 fn render_png_is_deterministic() {
     let tmp = TempDir::new().unwrap();
     let out_a = tmp.path().join("triangle_a.png");
@@ -702,6 +772,42 @@ fn render_shadow_toggle_changes_png() {
     let bytes_shadow = fs::read(&out_shadow).unwrap();
     let bytes_no_shadow = fs::read(&out_no_shadow).unwrap();
     assert_ne!(bytes_shadow, bytes_no_shadow);
+}
+
+#[test]
+fn render_rejects_align_input() {
+    let tmp = TempDir::new().unwrap();
+    let out = tmp.path().join("bad.png");
+
+    biofabric()
+        .args([
+            "render",
+            &test_align("test_perfect.align"),
+            "-o",
+            out.to_str().unwrap(),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "does not contain renderable network geometry",
+        ));
+}
+
+#[test]
+fn render_rejects_unsupported_output_extension() {
+    let tmp = TempDir::new().unwrap();
+    let out = tmp.path().join("bad.bmp");
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out.to_str().unwrap(),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("unsupported image extension"));
 }
 
 // =========================================================================
