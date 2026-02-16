@@ -96,6 +96,11 @@ impl SetLayout {
             if link.is_shadow {
                 continue;
             }
+            if let Some(ref membership_relation) = self.config.membership_relation {
+                if &link.relation != membership_relation {
+                    continue;
+                }
+            }
 
             let (set_node, member_node) = match self.config.semantics {
                 SetSemantics::BelongsTo => (&link.target, &link.source),
@@ -369,13 +374,7 @@ impl SetLayout {
                     }
                 }
                 if ns_start != usize::MAX {
-                    link_annots.add(Annotation::new(
-                        set_node.as_str(),
-                        ns_start,
-                        ns_end,
-                        0,
-                        "",
-                    ));
+                    link_annots.add(Annotation::new(set_node.as_str(), ns_start, ns_end, 0, ""));
                 }
             }
         }

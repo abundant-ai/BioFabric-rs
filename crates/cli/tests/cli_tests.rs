@@ -532,6 +532,136 @@ fn layout_single_edge() {
 }
 
 #[test]
+fn layout_similarity_algorithm() {
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("triangle.sif"),
+            "--algorithm",
+            "similarity",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("row_count"));
+}
+
+#[test]
+fn layout_hierarchy_algorithm_has_level_annotations() {
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("dag_simple.sif"),
+            "--algorithm",
+            "hierarchy",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("node_annotations"))
+        .stdout(predicate::str::contains("Level 0"));
+}
+
+#[test]
+fn layout_cluster_algorithm_with_attributes() {
+    let tmp = TempDir::new().unwrap();
+    let attrs = tmp.path().join("cluster.tsv");
+    fs::write(&attrs, "node_id\tcluster\nA\tleft\nB\tleft\nC\tright\n").unwrap();
+
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("triangle.sif"),
+            "--algorithm",
+            "cluster",
+            "--attributes",
+            attrs.to_str().unwrap(),
+            "--cluster-attribute",
+            "cluster",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("cluster_assignments"));
+}
+
+#[test]
+fn layout_control_top_algorithm_with_attributes() {
+    let tmp = TempDir::new().unwrap();
+    let attrs = tmp.path().join("control.tsv");
+    fs::write(&attrs, "node_id\tis_control\nA\tyes\nB\t\nC\t\n").unwrap();
+
+    biofabric()
+        .args([
+            "layout",
+            &test_gw("directed_triangle.gw"),
+            "--algorithm",
+            "control-top",
+            "--attributes",
+            attrs.to_str().unwrap(),
+            "--control-attribute",
+            "is_control",
+            "--control-value",
+            "yes",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("row_count"));
+}
+
+#[test]
+fn layout_set_algorithm() {
+    biofabric()
+        .args(["layout", &test_sif("bipartite.sif"), "--algorithm", "set"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("node_annotations"))
+        .stdout(predicate::str::contains("link_annotations"));
+}
+
+#[test]
+fn layout_worldbank_algorithm() {
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("linear_chain.sif"),
+            "--algorithm",
+            "world-bank",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("row_count"));
+}
+
+#[test]
+fn layout_with_custom_node_order_file() {
+    let tmp = TempDir::new().unwrap();
+    let order_file = tmp.path().join("order.txt");
+    let layout_file = tmp.path().join("layout.json");
+    fs::write(&order_file, "C\nB\nA\n").unwrap();
+
+    biofabric()
+        .args([
+            "layout",
+            &test_sif("triangle.sif"),
+            "--node-order",
+            order_file.to_str().unwrap(),
+            "-o",
+            layout_file.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    let order_out = biofabric()
+        .args(["export-order", layout_file.to_str().unwrap()])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let order_text = String::from_utf8(order_out).unwrap();
+    let lines: Vec<&str> = order_text.lines().collect();
+    assert_eq!(lines, vec!["C", "B", "A"]);
+}
+
+#[test]
 fn layout_missing_file() {
     biofabric()
         .args(["layout", "does_not_exist.sif"])

@@ -119,7 +119,9 @@ pub struct LayoutArgs {
     #[arg(long, default_value = "bfs", value_enum)]
     pub cluster_order: ClusterOrderMode,
 
-    /// Attribute name for set membership (--algorithm set).
+    /// Relation type to treat as set-membership edges (--algorithm set).
+    ///
+    /// If omitted, all relation types are considered membership edges.
     #[arg(long)]
     pub set_attribute: Option<String>,
 
