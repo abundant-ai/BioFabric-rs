@@ -31,6 +31,12 @@ button,
   cursor: pointer;
 }
 
+button.active-toggle,
+.active-toggle {
+  background: linear-gradient(180deg, #4b669e, #3a527f);
+  border-color: #6f8fcc;
+}
+
 button[disabled],
 .file-btn:has(input:disabled) {
   cursor: not-allowed;
@@ -84,6 +90,22 @@ input[type="range"] {
   flex-wrap: wrap;
 }
 
+.command-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.55rem;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  background: rgba(23, 30, 48, 0.74);
+  border: 1px solid #2b3655;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
 .file-btn {
   position: relative;
   display: inline-flex;
@@ -130,6 +152,10 @@ input[type="range"] {
   min-height: 680px;
 }
 
+.workspace-grid.workspace-grid--no-nav {
+  grid-template-columns: minmax(420px, 1fr) minmax(220px, 300px);
+}
+
 .side-panel {
   background: rgba(18, 25, 40, 0.84);
   border: 1px solid #2f3d61;
@@ -151,6 +177,10 @@ input[type="range"] {
   color: #bbcaea;
 }
 
+.side-panel--hidden {
+  display: none;
+}
+
 .control-group {
   display: grid;
   gap: 0.45rem;
@@ -170,6 +200,26 @@ input[type="range"] {
   display: flex;
   gap: 0.42rem;
   flex-wrap: wrap;
+}
+
+.tour-panel {
+  border: 1px solid #354a76;
+  border-radius: 8px;
+  padding: 0.55rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tour-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tour-status {
+  margin: 0;
+  color: #c8d6f5;
+  font-size: 0.82rem;
 }
 
 .search-results {
@@ -301,6 +351,23 @@ input[type="range"] {
   color: #fbcf75;
 }
 
+.fabric-location {
+  background: rgba(21, 30, 49, 0.85);
+  border: 1px solid #36496f;
+  border-radius: 10px;
+  padding: 0.55rem 0.72rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.fabric-location-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.55rem;
+  color: #d4def6;
+  font-size: 0.82rem;
+}
+
 .app-footer {
   display: flex;
   justify-content: space-between;
@@ -327,6 +394,11 @@ input[type="range"] {
 
   .workspace-grid > :nth-child(3) {
     grid-area: right;
+  }
+
+  .workspace-grid.workspace-grid--no-nav {
+    grid-template-columns: minmax(360px, 1fr) minmax(220px, 300px);
+    grid-template-areas: "center right";
   }
 }
 

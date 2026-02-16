@@ -43,6 +43,7 @@ import {
   worldToScreen,
   zoomAroundPoint,
   type CameraState,
+  type WorldPoint,
   type WorldRect,
 } from "./state/viewState";
 import { rgbaFromHex, rgbaToCss } from "./lib/colors";
@@ -57,6 +58,16 @@ interface HoverInfo {
   details: string;
 }
 
+interface MouseLocationSnapshot {
+  nodeDesc: string;
+  linkDesc: string;
+  zoneDesc: string;
+  linkSrcDesc: string;
+  linkTrgDesc: string;
+  nodeAnnotations: string[];
+  linkAnnotations: string[];
+}
+
 interface PrepareWorkerMessage {
   type: "prepared";
   requestId: number;
@@ -64,7 +75,7 @@ interface PrepareWorkerMessage {
 }
 
 interface DragState {
-  mode: "none" | "pan" | "marquee";
+  mode: "none" | "pan" | "marquee" | "zoom-rect";
   startX: number;
   startY: number;
   lastX: number;
@@ -72,6 +83,16 @@ interface DragState {
   startWorldX: number;
   startWorldY: number;
   moved: boolean;
+}
+
+interface SelectionEntry {
+  kind: "node" | "link";
+  id: string;
+  label: string;
+  sortKey: number;
+  rect: WorldRect;
+  nodeId?: string;
+  linkIndex?: number;
 }
 
 const ALIGNMENT_VIEWS: Array<{ value: AlignmentViewMode; label: string }> = [
@@ -85,6 +106,115 @@ function emptySelection(): SelectionState {
   return {
     nodeIds: new Set<string>(),
     linkIndices: new Set<number>(),
+  };
+}
+
+function emptyMouseLocation(): MouseLocationSnapshot {
+  return {
+    nodeDesc: "<none>",
+    linkDesc: "<none>",
+    zoneDesc: "<none>",
+    linkSrcDesc: "<none>",
+    linkTrgDesc: "<none>",
+    nodeAnnotations: ["<none>"],
+    linkAnnotations: ["<none>"],
+  };
+}
+
+function annotationLabelsAt(annotations: AnnotationBand[], position: number): string[] {
+  const labels = annotations
+    .filter((annotation) => position >= annotation.start && position <= annotation.end)
+    .map((annotation) => annotation.label);
+  return labels.length > 0 ? labels : ["<none>"];
+}
+
+function describeMouseLocation(
+  scene: SceneModel,
+  camera: CameraState,
+  displayOptions: DisplayOptions,
+  alignmentView: AlignmentViewMode,
+  screenX: number,
+  screenY: number,
+): MouseLocationSnapshot {
+  const world = screenToWorld(camera, screenX, screenY);
+  const rowTol = Math.max(0.32, 6 / camera.zoom);
+  const colTol = Math.max(0.26, 6 / camera.zoom);
+  const showShadows = displayOptions.showShadows;
+  const linkAnnotations = showShadows ? scene.linkAnnotations : scene.linkAnnotationsNoShadows;
+  const nodeById = new Map(scene.nodes.map((node) => [node.id, node]));
+
+  const rowPos = Math.max(0, Math.floor(world.y));
+  const colPos = Math.max(0, Math.floor(world.x));
+  let nodeHit: NodeLayout | null = null;
+  let nodeDist = Number.POSITIVE_INFINITY;
+  for (const node of scene.nodes) {
+    const minCol = showShadows ? node.minCol : node.minColNoShadows;
+    const maxCol = showShadows ? node.maxCol + 1 : node.maxColNoShadows + 1;
+    if (world.x < minCol - colTol || world.x > maxCol + colTol) {
+      continue;
+    }
+    const dist = Math.abs(world.y - (node.row + 0.5));
+    if (dist <= rowTol && dist < nodeDist) {
+      nodeHit = node;
+      nodeDist = dist;
+    }
+  }
+
+  let linkHit: LinkLayout | null = null;
+  let linkDist = Number.POSITIVE_INFINITY;
+  for (const link of scene.links) {
+    if (!relationIncluded(link.relation, alignmentView)) {
+      continue;
+    }
+    const col = showShadows ? link.column + 0.5 : link.columnNoShadows === null ? -1 : link.columnNoShadows + 0.5;
+    if (col < 0) {
+      continue;
+    }
+    if (world.y < link.topRow - rowTol || world.y > link.bottomRow + 1 + rowTol) {
+      continue;
+    }
+    const dist = Math.abs(world.x - col);
+    if (dist <= colTol && dist < linkDist) {
+      linkHit = link;
+      linkDist = dist;
+    }
+  }
+
+  const zoneNode = scene.nodes.find((node) => {
+    const minCol = showShadows ? node.minCol : node.minColNoShadows;
+    const maxCol = showShadows ? node.maxCol + 1 : node.maxColNoShadows + 1;
+    return rowPos === node.row && colPos >= minCol && colPos <= maxCol;
+  });
+
+  const linkDesc =
+    linkHit === null
+      ? "<none>"
+      : `${linkHit.sourceId} ${linkHit.relation} ${linkHit.targetId}`;
+  const linkSrcDesc =
+    linkHit === null
+      ? "<none>"
+      : nodeById.get(linkHit.sourceId)?.name ?? linkHit.sourceId;
+  const linkTrgDesc =
+    linkHit === null
+      ? "<none>"
+      : nodeById.get(linkHit.targetId)?.name ?? linkHit.targetId;
+
+  const zoneDesc =
+    zoneNode?.name ??
+    (linkHit === null
+      ? "<none>"
+      : Math.abs(world.y - (linkHit.sourceRow + 0.5)) <= Math.abs(world.y - (linkHit.targetRow + 0.5))
+        ? linkSrcDesc
+        : linkTrgDesc);
+
+  return {
+    nodeDesc: nodeHit?.name ?? "<none>",
+    linkDesc,
+    zoneDesc,
+    linkSrcDesc,
+    linkTrgDesc,
+    nodeAnnotations: annotationLabelsAt(scene.nodeAnnotations, rowPos),
+    linkAnnotations: annotationLabelsAt(linkAnnotations, colPos),
   };
 }
 
@@ -380,10 +510,20 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusMessage, setStatusMessage] = useState("Load a layout/session JSON file or a SIF network.");
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [mouseLocation, setMouseLocation] = useState<MouseLocationSnapshot>(emptyMouseLocation);
+  const [buildSelect, setBuildSelect] = useState(true);
+  const [zoomRectArmed, setZoomRectArmed] = useState(false);
+  const [selectionCursor, setSelectionCursor] = useState(0);
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
+  const [tourArmed, setTourArmed] = useState(false);
+  const [tourSelectionOnly, setTourSelectionOnly] = useState(false);
+  const [showNavPanel, setShowNavPanel] = useState(true);
+  const [showTourPanel, setShowTourPanel] = useState(true);
   const [viewport, setViewport] = useState<ViewportSize>({ width: 980, height: 640 });
   const [fitRequest, setFitRequest] = useState(1);
   const [marquee, setMarquee] = useState<WorldRect | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
+  const [mouseWorldPoint, setMouseWorldPoint] = useState<WorldPoint | null>(null);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const baseCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -393,6 +533,7 @@ export function App() {
   const workerRef = useRef<Worker | null>(null);
   const nextPrepareRequestIdRef = useRef(0);
   const activePrepareRequestIdRef = useRef(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const dragStateRef = useRef<DragState>({
     mode: "none",
@@ -772,7 +913,30 @@ export function App() {
       Math.max(1, toMiniX(viewportWorld.maxX) - toMiniX(viewportWorld.minX)),
       Math.max(1, toMiniY(viewportWorld.maxY) - toMiniY(viewportWorld.minY)),
     );
-  }, [camera, displayOptions.showOverview, displayOptions.showShadows, scene, viewport.height, viewport.width]);
+    if (mouseWorldPoint) {
+      const mx = toMiniX(mouseWorldPoint.x);
+      const my = toMiniY(mouseWorldPoint.y);
+      ctx.strokeStyle = "rgba(102, 214, 145, 0.95)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(mx, my, 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mx - 10, my);
+      ctx.lineTo(mx + 10, my);
+      ctx.moveTo(mx, my - 10);
+      ctx.lineTo(mx, my + 10);
+      ctx.stroke();
+    }
+  }, [
+    camera,
+    displayOptions.showOverview,
+    displayOptions.showShadows,
+    mouseWorldPoint,
+    scene,
+    viewport.height,
+    viewport.width,
+  ]);
 
   const searchResults = useMemo(() => {
     if (!scene || searchQuery.trim().length === 0) {
@@ -797,6 +961,78 @@ export function App() {
       .sort((a, b) => b.count - a.count);
   }, [scene]);
 
+  const selectionEntries = useMemo(() => {
+    if (!scene) {
+      return [] as SelectionEntry[];
+    }
+    const entries: SelectionEntry[] = [];
+    for (const nodeId of selection.nodeIds) {
+      const node = scene.nodes.find((entry) => entry.id === nodeId);
+      if (!node) {
+        continue;
+      }
+      const minCol = displayOptions.showShadows ? node.minCol : node.minColNoShadows;
+      const maxCol = (displayOptions.showShadows ? node.maxCol : node.maxColNoShadows) + 1;
+      entries.push({
+        kind: "node",
+        id: node.id,
+        nodeId: node.id,
+        label: `Node ${node.name}`,
+        sortKey: node.row * 10_000 + minCol,
+        rect: {
+          minX: minCol - 1,
+          maxX: maxCol + 1,
+          minY: node.row - 1,
+          maxY: node.row + 2,
+        },
+      });
+    }
+    for (const linkIndex of selection.linkIndices) {
+      const link = scene.links[linkIndex];
+      if (!link) {
+        continue;
+      }
+      const col = displayOptions.showShadows
+        ? link.column + 0.5
+        : link.columnNoShadows === null
+          ? -1
+          : link.columnNoShadows + 0.5;
+      if (col < 0) {
+        continue;
+      }
+      entries.push({
+        kind: "link",
+        id: `link:${link.index}`,
+        linkIndex: link.index,
+        label: `Link ${link.sourceId} ${link.relation} ${link.targetId}`,
+        sortKey: col * 10_000 + link.topRow,
+        rect: {
+          minX: col - 1.5,
+          maxX: col + 1.5,
+          minY: link.topRow - 1,
+          maxY: link.bottomRow + 2,
+        },
+      });
+    }
+    entries.sort((a, b) => a.sortKey - b.sortKey);
+    return entries;
+  }, [displayOptions.showShadows, scene, selection.linkIndices, selection.nodeIds]);
+
+  const activeTourEntry = useMemo(
+    () => (tourIndex === null ? null : selectionEntries[tourIndex] ?? null),
+    [selectionEntries, tourIndex],
+  );
+
+  useEffect(() => {
+    if (selectionEntries.length === 0) {
+      setSelectionCursor(0);
+      setTourIndex(null);
+      return;
+    }
+    setSelectionCursor((prev) => Math.max(0, Math.min(prev, selectionEntries.length - 1)));
+    setTourIndex((prev) => (prev === null ? null : Math.max(0, Math.min(prev, selectionEntries.length - 1))));
+  }, [selectionEntries]);
+
   const applySelection = (updater: (next: SelectionState) => void) => {
     setSelection((previous) => {
       const next: SelectionState = {
@@ -806,6 +1042,128 @@ export function App() {
       updater(next);
       return next;
     });
+  };
+
+  const focusSelectionEntry = (entry: SelectionEntry) => {
+    focusOnRect(entry.rect);
+  };
+
+  const moveSelectionCursor = (delta: number) => {
+    if (selectionEntries.length === 0) {
+      return;
+    }
+    const next = (selectionCursor + delta + selectionEntries.length) % selectionEntries.length;
+    setSelectionCursor(next);
+    focusSelectionEntry(selectionEntries[next]);
+  };
+
+  const zoomToCurrentSelectionEntry = () => {
+    if (selectionEntries.length === 0) {
+      return;
+    }
+    focusSelectionEntry(selectionEntries[selectionCursor]);
+  };
+
+  const addFirstNeighbors = () => {
+    if (!scene) {
+      return;
+    }
+    setSelection((previous) => {
+      const next: SelectionState = {
+        nodeIds: new Set(previous.nodeIds),
+        linkIndices: new Set(previous.linkIndices),
+      };
+      const seedNodes = new Set(next.nodeIds);
+      for (const linkIndex of next.linkIndices) {
+        const link = scene.links[linkIndex];
+        if (!link) {
+          continue;
+        }
+        seedNodes.add(link.sourceId);
+        seedNodes.add(link.targetId);
+      }
+      if (seedNodes.size === 0) {
+        return next;
+      }
+      for (const link of scene.links) {
+        if (!relationIncluded(link.relation, alignmentView)) {
+          continue;
+        }
+        if (seedNodes.has(link.sourceId) || seedNodes.has(link.targetId)) {
+          next.nodeIds.add(link.sourceId);
+          next.nodeIds.add(link.targetId);
+          next.linkIndices.add(link.index);
+        }
+      }
+      return next;
+    });
+  };
+
+  const startTourFromSelection = () => {
+    if (selectionEntries.length === 0) {
+      return;
+    }
+    setTourArmed(false);
+    setTourIndex(0);
+    focusSelectionEntry(selectionEntries[0]);
+  };
+
+  const chooseTourStart = () => {
+    setTourArmed((previous) => {
+      const next = !previous;
+      if (next) {
+        setStatusMessage("Choose a tour start by clicking a node or link.");
+      }
+      return next;
+    });
+  };
+
+  const moveTour = (delta: number) => {
+    if (selectionEntries.length === 0) {
+      return;
+    }
+    const current = tourIndex ?? 0;
+    const next = (current + delta + selectionEntries.length) % selectionEntries.length;
+    setTourIndex(next);
+    focusSelectionEntry(selectionEntries[next]);
+  };
+
+  const jumpTour = (target: "first" | "last") => {
+    if (selectionEntries.length === 0) {
+      return;
+    }
+    const idx = target === "first" ? 0 : selectionEntries.length - 1;
+    setTourIndex(idx);
+    focusSelectionEntry(selectionEntries[idx]);
+  };
+
+  const clearTour = () => {
+    setTourArmed(false);
+    setTourIndex(null);
+  };
+
+  const zoomToTourStop = () => {
+    if (!activeTourEntry) {
+      return;
+    }
+    focusSelectionEntry(activeTourEntry);
+  };
+
+  const tourToLinkZone = () => {
+    if (!scene || !activeTourEntry) {
+      return;
+    }
+    if (activeTourEntry.kind === "node" && activeTourEntry.nodeId) {
+      locateNode(activeTourEntry.nodeId);
+      return;
+    }
+    if (activeTourEntry.kind === "link" && activeTourEntry.linkIndex !== undefined) {
+      const link = scene.links[activeTourEntry.linkIndex];
+      if (!link) {
+        return;
+      }
+      locateNode(link.sourceId);
+    }
   };
 
   const focusOnRect = (rect: WorldRect) => {
@@ -846,6 +1204,7 @@ export function App() {
       setScene(nextScene);
       setDisplayOptions({ ...nextPayload.displayOptions });
       setSelection(emptySelection());
+      setMouseLocation(emptyMouseLocation());
       setWarnings(nextPayload.warnings);
       setStatusMessage(
         `Loaded ${file.name} (${formatSourceKind(nextPayload.sourceKind)}), ${nextScene.nodes.length} nodes, ${nextScene.links.length} links.`,
@@ -889,7 +1248,7 @@ export function App() {
     const target = event.currentTarget;
     target.setPointerCapture(event.pointerId);
     const world = screenToWorld(camera, event.nativeEvent.offsetX, event.nativeEvent.offsetY);
-    const mode = event.shiftKey ? "marquee" : "pan";
+    const mode = zoomRectArmed ? "zoom-rect" : event.shiftKey ? "marquee" : "pan";
     dragStateRef.current = {
       mode,
       startX: event.clientX,
@@ -900,7 +1259,7 @@ export function App() {
       startWorldY: world.y,
       moved: false,
     };
-    if (mode === "marquee") {
+    if (mode === "marquee" || mode === "zoom-rect") {
       setMarquee({
         minX: world.x,
         maxX: world.x,
@@ -917,6 +1276,7 @@ export function App() {
     const drag = dragStateRef.current;
     const offsetX = event.nativeEvent.offsetX;
     const offsetY = event.nativeEvent.offsetY;
+    const world = screenToWorld(camera, offsetX, offsetY);
 
     if (drag.mode === "pan" && (event.buttons & 1) === 1) {
       const dx = event.clientX - drag.lastX;
@@ -934,9 +1294,8 @@ export function App() {
       return;
     }
 
-    if (drag.mode === "marquee" && (event.buttons & 1) === 1) {
+    if ((drag.mode === "marquee" || drag.mode === "zoom-rect") && (event.buttons & 1) === 1) {
       drag.moved = true;
-      const world = screenToWorld(camera, offsetX, offsetY);
       setMarquee({
         minX: drag.startWorldX,
         maxX: world.x,
@@ -945,6 +1304,9 @@ export function App() {
       });
       return;
     }
+
+    setMouseWorldPoint(world);
+    setMouseLocation(describeMouseLocation(scene, camera, displayOptions, alignmentView, offsetX, offsetY));
 
     const hit = hitTest(
       scene,
@@ -988,6 +1350,16 @@ export function App() {
     const offsetX = event.nativeEvent.offsetX;
     const offsetY = event.nativeEvent.offsetY;
 
+    if (drag.mode === "zoom-rect") {
+      if (marquee) {
+        focusOnRect(normalizeRect(marquee));
+      }
+      setMarquee(null);
+      setZoomRectArmed(false);
+      drag.mode = "none";
+      return;
+    }
+
     if (drag.mode === "marquee") {
       if (marquee) {
         const chosen = selectInRect(scene, marquee, displayOptions.showShadows, alignmentView);
@@ -1015,13 +1387,33 @@ export function App() {
         offsetX,
         offsetY,
       );
+      if (tourArmed && hit) {
+        if (hit.nodeId) {
+          setSelection({
+            nodeIds: new Set([hit.nodeId]),
+            linkIndices: new Set<number>(),
+          });
+          setTourIndex(0);
+        } else if (hit.linkIndex !== undefined) {
+          setSelection({
+            nodeIds: new Set<string>(),
+            linkIndices: new Set<number>([hit.linkIndex]),
+          });
+          setTourIndex(0);
+        }
+        setTourArmed(false);
+        drag.mode = "none";
+        drag.moved = false;
+        return;
+      }
+      const additive = event.shiftKey || buildSelect;
       if (!hit) {
-        if (!event.shiftKey) {
+        if (!additive) {
           setSelection(emptySelection());
         }
       } else if (hit.nodeId) {
         applySelection((next) => {
-          if (!event.shiftKey) {
+          if (!additive) {
             next.nodeIds.clear();
             next.linkIndices.clear();
           }
@@ -1033,7 +1425,7 @@ export function App() {
         });
       } else if (hit.linkIndex !== undefined) {
         applySelection((next) => {
-          if (!event.shiftKey) {
+          if (!additive) {
             next.nodeIds.clear();
             next.linkIndices.clear();
           }
@@ -1054,6 +1446,15 @@ export function App() {
     event.preventDefault();
     const factor = event.deltaY < 0 ? 1.1 : 0.9;
     setCamera((previous) => zoomAroundPoint(previous, factor, event.nativeEvent.offsetX, event.nativeEvent.offsetY));
+  };
+
+  const handlePointerLeave = () => {
+    dragStateRef.current.mode = "none";
+    dragStateRef.current.moved = false;
+    setMarquee(null);
+    setHover(null);
+    setMouseWorldPoint(null);
+    setMouseLocation(emptyMouseLocation());
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -1105,6 +1506,78 @@ export function App() {
         </div>
       </header>
 
+      <section className="command-toolbar">
+        <div className="toolbar-group">
+          <button
+            type="button"
+            onClick={() =>
+              setCamera((prev) =>
+                zoomAroundPoint(prev, 0.85, viewport.width / 2, viewport.height / 2),
+              )
+            }
+            disabled={!scene}
+          >
+            Zoom Out
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setCamera((prev) =>
+                zoomAroundPoint(prev, 1.2, viewport.width / 2, viewport.height / 2),
+              )
+            }
+            disabled={!scene}
+          >
+            Zoom In
+          </button>
+          <button type="button" onClick={() => setFitRequest((prev) => prev + 1)} disabled={!scene}>
+            Zoom to Model
+          </button>
+          <button
+            type="button"
+            onClick={() => setZoomRectArmed((prev) => !prev)}
+            disabled={!scene}
+            className={zoomRectArmed ? "active-toggle" : undefined}
+          >
+            Zoom Rect
+          </button>
+        </div>
+        <div className="toolbar-group">
+          <button type="button" onClick={() => moveSelectionCursor(-1)} disabled={selectionEntries.length === 0}>
+            Prev Selection
+          </button>
+          <button type="button" onClick={zoomToCurrentSelectionEntry} disabled={selectionEntries.length === 0}>
+            Zoom Selection
+          </button>
+          <button type="button" onClick={() => moveSelectionCursor(1)} disabled={selectionEntries.length === 0}>
+            Next Selection
+          </button>
+        </div>
+        <div className="toolbar-group">
+          <button type="button" onClick={addFirstNeighbors} disabled={!scene || selectionEntries.length === 0}>
+            Add First Neighbors
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelection(emptySelection())}
+            disabled={!scene || (selection.nodeIds.size === 0 && selection.linkIndices.size === 0)}
+          >
+            Clear Selections
+          </button>
+          <button type="button" onClick={() => searchInputRef.current?.focus()} disabled={!scene}>
+            Search
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayOptions((prev) => ({ ...prev, showShadows: !prev.showShadows }))}
+            disabled={!scene}
+            className={displayOptions.showShadows ? "active-toggle" : undefined}
+          >
+            Toggle Shadows
+          </button>
+        </div>
+      </section>
+
       <section className="status-grid">
         <article className="status-card">
           <h2>Renderer backend</h2>
@@ -1124,13 +1597,16 @@ export function App() {
         </article>
       </section>
 
-      <section className="workspace-grid">
-        <aside className="side-panel">
+      <section
+        className={`workspace-grid${!showNavPanel ? " workspace-grid--no-nav" : ""}`}
+      >
+        <aside className={`side-panel${showNavPanel ? "" : " side-panel--hidden"}`}>
           <h2>Controls</h2>
           <div className="control-group">
             <label>
               Search node
               <input
+                ref={searchInputRef}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 onKeyDown={handleKeyDown}
@@ -1223,6 +1699,14 @@ export function App() {
                 }
               />
               Overview panel
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={buildSelect}
+                onChange={(event) => setBuildSelect(event.target.checked)}
+              />
+              Build select (accumulate picks)
             </label>
           </div>
 
@@ -1331,7 +1815,8 @@ export function App() {
           <div className="canvas-meta">
             <span>{statusMessage}</span>
             <span>
-              zoom {clampZoom(camera.zoom).toFixed(2)} | pan {camera.panX.toFixed(1)}, {camera.panY.toFixed(1)}
+              zoom {clampZoom(camera.zoom).toFixed(2)} | pan {camera.panX.toFixed(1)}, {camera.panY.toFixed(1)} |
+              {zoomRectArmed ? " zoom-rect armed" : " pan/select"}{tourArmed ? " | tour-start armed" : ""}
             </span>
           </div>
           <div className="canvas-shell" ref={viewportRef}>
@@ -1342,6 +1827,7 @@ export function App() {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerLeave}
               onWheel={handleWheel}
             />
             {!scene && <div className="canvas-empty">Load a file to start rendering.</div>}
@@ -1357,6 +1843,21 @@ export function App() {
 
         <aside className="side-panel">
           <h2>Overview + metrics</h2>
+          <div className="control-group check-grid">
+            <label>
+              <input type="checkbox" checked={showNavPanel} onChange={(event) => setShowNavPanel(event.target.checked)} />
+              Show nav panel
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={showTourPanel}
+                onChange={(event) => setShowTourPanel(event.target.checked)}
+              />
+              Show tour controls
+            </label>
+          </div>
+
           <canvas
             ref={minimapCanvasRef}
             width={220}
@@ -1364,6 +1865,71 @@ export function App() {
             className="minimap"
             onPointerDown={handleOverviewClick}
           />
+
+          {showTourPanel && (
+            <div className="tour-panel">
+              <h3>Tour</h3>
+              <div className="control-row">
+                <button type="button" onClick={startTourFromSelection} disabled={selectionEntries.length === 0}>
+                  Start at current
+                </button>
+                <button
+                  type="button"
+                  onClick={chooseTourStart}
+                  className={tourArmed ? "active-toggle" : undefined}
+                  disabled={!scene}
+                >
+                  Choose a start
+                </button>
+              </div>
+              <div className="control-row">
+                <button type="button" onClick={() => jumpTour("first")} disabled={selectionEntries.length === 0}>
+                  {"<<"}
+                </button>
+                <button type="button" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
+                  Left
+                </button>
+                <button type="button" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
+                  Right
+                </button>
+                <button type="button" onClick={() => jumpTour("last")} disabled={selectionEntries.length === 0}>
+                  {">>"}
+                </button>
+              </div>
+              <div className="control-row">
+                <button type="button" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
+                  Up
+                </button>
+                <button type="button" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
+                  Down
+                </button>
+                <button type="button" onClick={clearTour} disabled={tourIndex === null && !tourArmed}>
+                  Clear
+                </button>
+              </div>
+              <div className="control-row">
+                <button type="button" onClick={zoomToTourStop} disabled={!activeTourEntry}>
+                  Zoom
+                </button>
+                <button type="button" onClick={tourToLinkZone} disabled={!activeTourEntry}>
+                  To link zone
+                </button>
+                <label className="tour-check">
+                  <input
+                    type="checkbox"
+                    checked={tourSelectionOnly}
+                    onChange={(event) => setTourSelectionOnly(event.target.checked)}
+                  />
+                  selected only
+                </label>
+              </div>
+              <p className="tour-status">
+                {activeTourEntry
+                  ? `${tourIndex! + 1}/${selectionEntries.length}: ${activeTourEntry.label}`
+                  : "no active tour stop"}
+              </p>
+            </div>
+          )}
 
           <div className="metrics-list">
             <h3>Selection</h3>
@@ -1387,6 +1953,18 @@ export function App() {
             </ul>
           </div>
         </aside>
+      </section>
+
+      <section className="fabric-location">
+        <div className="fabric-location-row">
+          <span>Mouse Over Node Row: {mouseLocation.nodeDesc}</span>
+          <span>Mouse Over Link: {mouseLocation.linkDesc}</span>
+          <span>Mouse Over Node Link Zone: {mouseLocation.zoneDesc}</span>
+        </div>
+        <div className="fabric-location-row">
+          <span>Mouse Over Node Annotations: {mouseLocation.nodeAnnotations.join(", ")}</span>
+          <span>Mouse Over Link Annotations: {mouseLocation.linkAnnotations.join(", ")}</span>
+        </div>
       </section>
 
       {(warnings.length > 0 || statusMessage.length > 0) && (
