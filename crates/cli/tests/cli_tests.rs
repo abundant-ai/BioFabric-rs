@@ -29,6 +29,15 @@ fn biofabric() -> Command {
     Command::cargo_bin("biofabric").expect("binary should exist")
 }
 
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for b in bytes {
+        hash ^= *b as u64;
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    hash
+}
+
 // =========================================================================
 // Top-level CLI
 // =========================================================================
@@ -732,6 +741,30 @@ fn render_png_is_deterministic() {
     let bytes_a = fs::read(&out_a).unwrap();
     let bytes_b = fs::read(&out_b).unwrap();
     assert_eq!(bytes_a, bytes_b);
+}
+
+#[test]
+fn render_triangle_png_baseline_hash() {
+    let tmp = TempDir::new().unwrap();
+    let out = tmp.path().join("triangle_baseline.png");
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    let bytes = fs::read(&out).unwrap();
+    assert_eq!(bytes.len(), 4912);
+    assert_eq!(fnv1a64(&bytes), 0xef9ca5a1d30c9f95);
 }
 
 #[test]
