@@ -531,11 +531,16 @@ mod tests {
         layout.nodes = IndexMap::from([(NodeId::new("A"), a), (NodeId::new("B"), b)]);
         let mut l0 = LinkLayout::new(0, NodeId::new("A"), NodeId::new("B"), 0, 1, "pp", false);
         l0.column_no_shadows = Some(0);
-        layout.links = vec![l0];
+        let l1 = LinkLayout::new(2, NodeId::new("B"), NodeId::new("A"), 1, 0, "pp", true);
+        layout.links = vec![l0, l1];
         layout.row_count = 2;
-        layout.column_count = 1;
+        layout.column_count = 3;
         layout.column_count_no_shadows = 1;
         layout
+    }
+
+    fn non_background_pixel_count(img: &RgbaImage, bg: Rgba<u8>) -> usize {
+        img.pixels().filter(|px| **px != bg).count()
     }
 
     #[test]
@@ -558,5 +563,38 @@ mod tests {
             parse_hex_color("#10203040").unwrap(),
             FabricColor::rgba(16, 32, 48, 64)
         );
+    }
+
+    #[test]
+    fn render_layout_is_not_blank() {
+        let layout = tiny_layout();
+        let display = DisplayOptions::for_image_export(true);
+        let options = RenderImageOptions::new(320, Some(180));
+        let img = render_layout_to_image(&layout, &display, &options).unwrap();
+        let bg = Rgba([255, 255, 255, 255]);
+        assert!(non_background_pixel_count(&img, bg) > 0);
+    }
+
+    #[test]
+    fn render_is_deterministic_for_same_inputs() {
+        let layout = tiny_layout();
+        let display = DisplayOptions::for_image_export(true);
+        let options = RenderImageOptions::new(420, Some(210));
+        let img_a = render_layout_to_image(&layout, &display, &options).unwrap();
+        let img_b = render_layout_to_image(&layout, &display, &options).unwrap();
+        assert_eq!(img_a.as_raw(), img_b.as_raw());
+    }
+
+    #[test]
+    fn shadow_toggle_changes_rendered_image() {
+        let layout = tiny_layout();
+        let mut display_on = DisplayOptions::for_image_export(true);
+        display_on.show_shadows = true;
+        let mut display_off = DisplayOptions::for_image_export(false);
+        display_off.show_shadows = false;
+        let options = RenderImageOptions::new(420, Some(210));
+        let img_on = render_layout_to_image(&layout, &display_on, &options).unwrap();
+        let img_off = render_layout_to_image(&layout, &display_off, &options).unwrap();
+        assert_ne!(img_on.as_raw(), img_off.as_raw());
     }
 }

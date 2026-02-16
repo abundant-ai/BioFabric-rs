@@ -625,6 +625,85 @@ fn render_layout_json_to_png_file() {
     assert!(meta.len() > 256);
 }
 
+#[test]
+fn render_png_is_deterministic() {
+    let tmp = TempDir::new().unwrap();
+    let out_a = tmp.path().join("triangle_a.png");
+    let out_b = tmp.path().join("triangle_b.png");
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out_a.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out_b.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    let bytes_a = fs::read(&out_a).unwrap();
+    let bytes_b = fs::read(&out_b).unwrap();
+    assert_eq!(bytes_a, bytes_b);
+}
+
+#[test]
+fn render_shadow_toggle_changes_png() {
+    let tmp = TempDir::new().unwrap();
+    let out_shadow = tmp.path().join("triangle_shadow.png");
+    let out_no_shadow = tmp.path().join("triangle_no_shadow.png");
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out_shadow.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    biofabric()
+        .args([
+            "render",
+            &test_sif("triangle.sif"),
+            "-o",
+            out_no_shadow.to_str().unwrap(),
+            "--width",
+            "640",
+            "--height",
+            "320",
+            "--no-shadows",
+        ])
+        .assert()
+        .success();
+
+    let bytes_shadow = fs::read(&out_shadow).unwrap();
+    let bytes_no_shadow = fs::read(&out_no_shadow).unwrap();
+    assert_ne!(bytes_shadow, bytes_no_shadow);
+}
+
 // =========================================================================
 // Align command
 // =========================================================================
@@ -692,6 +771,49 @@ fn align_output_png() {
 
     let meta = fs::metadata(&out).unwrap();
     assert!(meta.len() > 256);
+}
+
+#[test]
+fn align_png_is_deterministic() {
+    let tmp = TempDir::new().unwrap();
+    let out_a = tmp.path().join("align_a.png");
+    let out_b = tmp.path().join("align_b.png");
+
+    biofabric()
+        .args([
+            "align",
+            &test_sif("align_net1.sif"),
+            &test_sif("align_net2.sif"),
+            &test_align("test_perfect.align"),
+            "-o",
+            out_a.to_str().unwrap(),
+            "--width",
+            "800",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    biofabric()
+        .args([
+            "align",
+            &test_sif("align_net1.sif"),
+            &test_sif("align_net2.sif"),
+            &test_align("test_perfect.align"),
+            "-o",
+            out_b.to_str().unwrap(),
+            "--width",
+            "800",
+            "--height",
+            "320",
+        ])
+        .assert()
+        .success();
+
+    let bytes_a = fs::read(&out_a).unwrap();
+    let bytes_b = fs::read(&out_b).unwrap();
+    assert_eq!(bytes_a, bytes_b);
 }
 
 // =========================================================================

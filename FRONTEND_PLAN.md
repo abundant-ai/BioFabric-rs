@@ -170,15 +170,15 @@ Acceptance:
 
 Deliverables:
 
-- Implement `biofabric render` command in CLI
-- Wire `align --output <image>` image path handling
-- Shared render model with image export options
-- PNG baseline export tests
+- [x] Implement `biofabric render` command in CLI
+- [x] Wire `align --output <image>` image path handling
+- [x] Shared render model with image export options
+- [x] PNG baseline export tests
 
 Acceptance:
 
-- Deterministic PNG export in CI/headless environment
-- `DisplayOptions::for_image_export()` actively used
+- [x] Deterministic PNG export in CI/headless environment
+- [x] `DisplayOptions::for_image_export()` actively used
 
 ## Phase 7 - Performance Hardening
 
