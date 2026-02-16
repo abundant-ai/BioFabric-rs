@@ -1,23 +1,35 @@
-export interface ScenePrepRequest {
-  nodeRows: Float32Array;
-  nodeMinCols: Float32Array;
-  nodeMaxCols: Float32Array;
-  linkCols: Float32Array;
-  linkSourceRows: Float32Array;
-  linkTargetRows: Float32Array;
+import { buildPreparedSceneBuffers, type ScenePrepInput } from "../lib/scenePrep";
+
+interface PrepareRequest {
+  type: "prepare";
+  payload: ScenePrepInput;
 }
 
-export interface ScenePrepResponse {
-  nodeCount: number;
-  linkCount: number;
+interface PreparedResponse {
+  type: "prepared";
+  payload: ReturnType<typeof buildPreparedSceneBuffers>;
 }
 
-self.onmessage = (event: MessageEvent<ScenePrepRequest>) => {
-  const payload = event.data;
-  const response: ScenePrepResponse = {
-    nodeCount: payload.nodeRows.length,
-    linkCount: payload.linkCols.length,
+type SceneWorkerRequest = PrepareRequest;
+type SceneWorkerResponse = PreparedResponse;
+
+self.onmessage = (event: MessageEvent<SceneWorkerRequest>) => {
+  if (event.data.type !== "prepare") {
+    return;
+  }
+
+  const prepared = buildPreparedSceneBuffers(event.data.payload);
+  const response: SceneWorkerResponse = {
+    type: "prepared",
+    payload: prepared,
   };
 
-  self.postMessage(response);
+  const transfer: Transferable[] = [
+    prepared.nodeVerticesShadow.buffer,
+    prepared.nodeVerticesNoShadows.buffer,
+    prepared.linkVerticesShadow.buffer,
+    prepared.linkVerticesNoShadows.buffer,
+  ];
+
+  self.postMessage(response, transfer);
 };

@@ -1,14 +1,33 @@
-# BioFabric Frontend (Skeleton)
+# BioFabric Frontend
 
-This folder contains the TypeScript frontend scaffold for BioFabric-rs.
+This folder contains the React + TypeScript frontend for interactive BioFabric rendering.
 
-## Current Status
+## Implemented
 
-- Vite + React + TypeScript app shell
-- Typed contracts for session/layout payloads
-- Scene model adapter stub
-- Renderer backend selection stub (WebGL2 vs fallback)
-- Worker boundary stub for scene preparation
+- Layout/session/network file loading:
+  - JSON layout (`NetworkLayout`)
+  - JSON session (`Session`)
+  - JSON network fallback (deterministic preview ordering)
+  - SIF import with fallback ordering
+- Typed schema normalization against Rust field names (snake_case and camelCase accepted)
+- Scene preparation worker:
+  - Builds packed line vertex buffers off the UI thread
+  - Supports alignment view relation filtering (`all/group/orphan/cycle`)
+- Rendering pipeline:
+  - WebGL2 line renderer (with CPU 2D fallback)
+  - Overlay pass for annotations, labels, selection, and marquee box
+- Interaction:
+  - Pan/zoom
+  - Click + shift-click selection
+  - Shift-drag rectangle selection
+  - Focus selection and fit-to-scene
+  - Hover inspection
+- Side panels:
+  - Search + locate
+  - Overview/minimap
+  - Alignment metrics panel (when present in payload)
+  - Display option toggles and thresholds
+- PNG export from the current viewport
 
 ## Commands
 
@@ -16,14 +35,5 @@ This folder contains the TypeScript frontend scaffold for BioFabric-rs.
 pnpm install
 pnpm dev
 pnpm build
+pnpm typecheck
 ```
-
-You can still run the same scripts with `npm run <script>` if needed, but
-`pnpm` is the default package manager for this frontend.
-
-## Next Steps
-
-1. Implement canvas viewport and draw loop.
-2. Add session file loading and parsing.
-3. Replace renderer stubs with WebGL2 pipeline.
-4. Integrate selection, annotation, and minimap systems.

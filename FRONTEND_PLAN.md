@@ -54,15 +54,15 @@ The plan is written so a coding agent can execute it phase-by-phase.
 
 ### Core BioFabric
 
-- [ ] Open/load session + networks
-- [ ] Pan/zoom navigation
-- [ ] Node/link rendering (with shadows toggle)
-- [ ] Selection: click, shift-click, rectangle
-- [ ] Focus box and clear selection
-- [ ] Node/link annotations and label toggles
-- [ ] Minimap/overview panel
-- [ ] Search and locate
-- [ ] Export image
+- [x] Open/load session + networks
+- [x] Pan/zoom navigation
+- [x] Node/link rendering (with shadows toggle)
+- [x] Selection: click, shift-click, rectangle
+- [x] Focus box and clear selection
+- [x] Node/link annotations and label toggles
+- [x] Minimap/overview panel
+- [x] Search and locate
+- [x] Export image
 
 ### Layout/Ordering
 
@@ -77,10 +77,10 @@ The plan is written so a coding agent can execute it phase-by-phase.
 
 ### AlignmentPlugin (VISNAB)
 
-- [ ] Group view
-- [ ] Orphan view
-- [ ] Cycle view
-- [ ] Alignment score panel (EC/S3/ICS/NC/JS/NGS/LGS)
+- [x] Group view
+- [x] Orphan view
+- [x] Cycle view
+- [x] Alignment score panel (EC/S3/ICS/NC/JS/NGS/LGS)
 - [ ] Perfect alignment option + thresholds
 - [ ] Node/edge color semantics
 
