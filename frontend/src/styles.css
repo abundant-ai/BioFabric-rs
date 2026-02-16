@@ -435,6 +435,59 @@ input[type="range"] {
   font-size: 0.8rem;
 }
 
+.mouseover-panel {
+  border: 1px solid #354a76;
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mouseover-grid {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mouseover-card {
+  border: 1px solid #3a4f7d;
+  border-radius: 7px;
+  background: rgba(17, 25, 39, 0.66);
+  padding: 0.35rem;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.mouseover-card header {
+  color: #c6d5f5;
+  font-size: 0.76rem;
+}
+
+.mouseover-card p {
+  margin: 0;
+  color: #e3ecfe;
+  font-size: 0.8rem;
+}
+
+.mouseover-card img {
+  width: 100%;
+  max-height: 110px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #3f517b;
+  background: #0e1524;
+}
+
+.mouseover-placeholder {
+  min-height: 64px;
+  border: 1px dashed #3f517b;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #92a7d5;
+  font-size: 0.76rem;
+  background: rgba(14, 21, 36, 0.75);
+}
+
 .metrics-list {
   font-size: 0.83rem;
   color: #d4def6;

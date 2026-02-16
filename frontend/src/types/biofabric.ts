@@ -86,6 +86,7 @@ export interface SessionPayload {
   layout: NetworkLayout;
   displayOptions: DisplayOptions;
   alignmentScores: AlignmentScores | null;
+  mouseOverImages: Record<string, string>;
   warnings: string[];
 }
 

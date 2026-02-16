@@ -608,6 +608,63 @@ function parseAlignmentScores(raw: unknown): AlignmentScores | null {
   };
 }
 
+function looksLikeImagePath(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (/^data:image\//iu.test(trimmed)) {
+    return true;
+  }
+  if (/^https?:\/\//iu.test(trimmed)) {
+    return true;
+  }
+  return /\.(?:png|jpe?g|gif|webp|svg)(?:\?.*)?$/iu.test(trimmed);
+}
+
+function parseMouseOverImages(raw: unknown): Record<string, string> {
+  if (!raw) {
+    return {};
+  }
+  const images: Record<string, string> = {};
+
+  if (Array.isArray(raw)) {
+    for (const entry of raw) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        continue;
+      }
+      const record = entry as Record<string, unknown>;
+      const nodeId = parseString(record, ["node_id", "nodeId", "id", "node"], "").trim();
+      const url = parseString(record, ["url", "image", "src", "path"], "").trim();
+      if (!nodeId || !looksLikeImagePath(url)) {
+        continue;
+      }
+      images[nodeId] = url;
+    }
+    return images;
+  }
+
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return images;
+  }
+  const record = raw as Record<string, unknown>;
+  const nested = record.images ?? record.node_images ?? record.nodeImages;
+  if (nested && nested !== raw) {
+    Object.assign(images, parseMouseOverImages(nested));
+  }
+  for (const [nodeId, value] of Object.entries(record)) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const url = value.trim();
+    if (!looksLikeImagePath(url)) {
+      continue;
+    }
+    images[nodeId] = url;
+  }
+  return images;
+}
+
 function parseSchemaVersion(root: Record<string, unknown>, warnings: string[]): number {
   const version = parseNumber(root, ["schema_version", "schemaVersion"], DEFAULT_SCHEMA_VERSION, "payload");
   const normalized = Math.max(1, Math.floor(version));
@@ -623,6 +680,9 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
   const root = asRecord(input, sourceName);
   const warnings: string[] = [];
   const schemaVersion = parseSchemaVersion(root, warnings);
+  const mouseOverImages = parseMouseOverImages(
+    root.mouse_over_images ?? root.mouseOverImages ?? root.mouse_over ?? root.mouseOver,
+  );
 
   if ("layout" in root) {
     const layout = parseLayout(root.layout);
@@ -632,6 +692,7 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
       layout,
       displayOptions: parseDisplayOptions(root.display_options ?? root.displayOptions),
       alignmentScores: parseAlignmentScores(root.alignment_scores ?? root.alignmentScores),
+      mouseOverImages,
       warnings,
     };
   }
@@ -643,6 +704,7 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
       layout: parseLayout(root),
       displayOptions: { ...defaultDisplayOptions },
       alignmentScores: null,
+      mouseOverImages,
       warnings,
     };
   }
@@ -661,6 +723,7 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
       layout,
       displayOptions: parseDisplayOptions(root.display_options ?? root.displayOptions),
       alignmentScores: parseAlignmentScores(root.alignment_scores ?? root.alignmentScores),
+      mouseOverImages,
       warnings,
     };
   }
@@ -683,6 +746,7 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
         layout: parseLayout(root),
         displayOptions: { ...defaultDisplayOptions },
         alignmentScores: null,
+        mouseOverImages,
         warnings,
       };
     }
@@ -693,6 +757,7 @@ function parseJsonPayload(input: unknown, sourceName: string): SessionPayload {
       layout: buildFallbackLayout(parseNetworkNodes(root.nodes), links),
       displayOptions: { ...defaultDisplayOptions },
       alignmentScores: null,
+      mouseOverImages,
       warnings: [
         ...warnings,
         "Loaded a network-only payload. Applied fallback row/column assignment for preview rendering.",
@@ -772,6 +837,7 @@ export function parseBioFabricFile(fileName: string, content: string): SessionPa
       layout: parseSifContent(content),
       displayOptions: { ...defaultDisplayOptions },
       alignmentScores: null,
+      mouseOverImages: {},
       warnings: [
         "Loaded SIF directly in browser and applied fallback ordering. Use CLI layout output for parity-accurate ordering.",
       ],

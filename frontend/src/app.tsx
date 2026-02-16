@@ -60,6 +60,10 @@ interface HoverInfo {
 }
 
 interface MouseLocationSnapshot {
+  nodeId: string | null;
+  zoneNodeId: string | null;
+  linkSourceId: string | null;
+  linkTargetId: string | null;
   nodeDesc: string;
   linkDesc: string;
   zoneDesc: string;
@@ -119,6 +123,10 @@ function emptySelection(): SelectionState {
 
 function emptyMouseLocation(): MouseLocationSnapshot {
   return {
+    nodeId: null,
+    zoneNodeId: null,
+    linkSourceId: null,
+    linkTargetId: null,
     nodeDesc: "<none>",
     linkDesc: "<none>",
     zoneDesc: "<none>",
@@ -214,8 +222,19 @@ function describeMouseLocation(
       : Math.abs(world.y - (linkHit.sourceRow + 0.5)) <= Math.abs(world.y - (linkHit.targetRow + 0.5))
         ? linkSrcDesc
         : linkTrgDesc);
+  const zoneNodeId =
+    zoneNode?.id ??
+    (linkHit === null
+      ? null
+      : Math.abs(world.y - (linkHit.sourceRow + 0.5)) <= Math.abs(world.y - (linkHit.targetRow + 0.5))
+        ? linkHit.sourceId
+        : linkHit.targetId);
 
   return {
+    nodeId: nodeHit?.id ?? null,
+    zoneNodeId,
+    linkSourceId: linkHit?.sourceId ?? null,
+    linkTargetId: linkHit?.targetId ?? null,
     nodeDesc: nodeHit?.name ?? "<none>",
     linkDesc,
     zoneDesc,
@@ -1065,6 +1084,41 @@ export function App() {
       .sort((a, b) => b.count - a.count);
   }, [scene]);
 
+  const mouseOverImageCards = useMemo(() => {
+    if (!scene) {
+      return [] as Array<{
+        slot: string;
+        nodeId: string | null;
+        nodeName: string;
+        imageUrl: string | null;
+      }>;
+    }
+    const nodeById = new Map(scene.nodes.map((node) => [node.id, node.name]));
+    const imageMap = payload?.mouseOverImages ?? {};
+    const slots: Array<{ slot: string; nodeId: string | null }> = [
+      { slot: "Node row", nodeId: mouseLocation.nodeId },
+      { slot: "Node link zone", nodeId: mouseLocation.zoneNodeId },
+      { slot: "Link source", nodeId: mouseLocation.linkSourceId },
+      { slot: "Link target", nodeId: mouseLocation.linkTargetId },
+    ];
+    return slots.map((entry) => {
+      const nodeId = entry.nodeId;
+      return {
+        slot: entry.slot,
+        nodeId,
+        nodeName: nodeId ? nodeById.get(nodeId) ?? nodeId : "<none>",
+        imageUrl: nodeId ? imageMap[nodeId] ?? null : null,
+      };
+    });
+  }, [
+    mouseLocation.linkSourceId,
+    mouseLocation.linkTargetId,
+    mouseLocation.nodeId,
+    mouseLocation.zoneNodeId,
+    payload,
+    scene,
+  ]);
+
   const selectionEntries = useMemo(() => {
     if (!scene) {
       return [] as SelectionEntry[];
@@ -1660,6 +1714,7 @@ export function App() {
     contextMenu?.linkIndex !== null && contextMenu?.linkIndex !== undefined && scene
       ? scene.links[contextMenu.linkIndex] ?? null
       : null;
+  const hasMouseOverImageMap = payload ? Object.keys(payload.mouseOverImages).length > 0 : false;
 
   return (
     <main className="app-shell">
@@ -2304,6 +2359,28 @@ export function App() {
               </label>
             </div>
           )}
+
+          <div className="mouseover-panel">
+            <h3>Mouse-over view panel</h3>
+            {!hasMouseOverImageMap && (
+              <p className="tour-status">
+                No node image map detected in payload (`mouse_over_images` / `mouseOverImages`).
+              </p>
+            )}
+            <div className="mouseover-grid">
+              {mouseOverImageCards.map((card) => (
+                <article key={card.slot} className="mouseover-card">
+                  <header>{card.slot}</header>
+                  <p>{card.nodeName}</p>
+                  {card.imageUrl ? (
+                    <img src={card.imageUrl} alt={`${card.slot} ${card.nodeName}`} loading="lazy" />
+                  ) : (
+                    <div className="mouseover-placeholder">no image</div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </div>
 
           {showTourPanel && (
             <div className="tour-panel">
