@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type KeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type WheelEvent,
   useEffect,
@@ -93,6 +94,13 @@ interface SelectionEntry {
   rect: WorldRect;
   nodeId?: string;
   linkIndex?: number;
+}
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  nodeId: string | null;
+  linkIndex: number | null;
 }
 
 const ALIGNMENT_VIEWS: Array<{ value: AlignmentViewMode; label: string }> = [
@@ -519,6 +527,10 @@ export function App() {
   const [tourSelectionOnly, setTourSelectionOnly] = useState(false);
   const [showNavPanel, setShowNavPanel] = useState(true);
   const [showTourPanel, setShowTourPanel] = useState(true);
+  const [showMagnifier, setShowMagnifier] = useState(true);
+  const [magnifierScale, setMagnifierScale] = useState(3);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [viewport, setViewport] = useState<ViewportSize>({ width: 980, height: 640 });
   const [fitRequest, setFitRequest] = useState(1);
   const [marquee, setMarquee] = useState<WorldRect | null>(null);
@@ -529,6 +541,8 @@ export function App() {
   const baseCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const minimapCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const magnifierCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const rendererRef = useRef<WebGl2LineRenderer | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const nextPrepareRequestIdRef = useRef(0);
@@ -567,6 +581,20 @@ export function App() {
       worker.terminate();
       workerRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      setContextMenu(null);
+      setAboutOpen(false);
+      setTourArmed(false);
+      setZoomRectArmed(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   useEffect(() => {
@@ -938,6 +966,82 @@ export function App() {
     viewport.width,
   ]);
 
+  useEffect(() => {
+    const canvas = magnifierCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!showMagnifier) {
+      ctx.fillStyle = "rgba(35, 45, 70, 0.8)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(177, 193, 224, 0.9)";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.fillText("magnifier hidden", 8, 18);
+      return;
+    }
+
+    if (!scene || !preparedBuffers) {
+      ctx.fillStyle = "rgba(35, 45, 70, 0.8)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(177, 193, 224, 0.9)";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.fillText("no scene", 8, 18);
+      return;
+    }
+
+    const viewportWorld = cameraViewportWorldRect(camera, viewport.width, viewport.height);
+    const center = mouseWorldPoint ?? {
+      x: (viewportWorld.minX + viewportWorld.maxX) / 2,
+      y: (viewportWorld.minY + viewportWorld.maxY) / 2,
+    };
+    const magZoom = clampZoom(camera.zoom * magnifierScale);
+    const magCamera: CameraState = {
+      zoom: magZoom,
+      panX: canvas.width / 2 - center.x * magZoom,
+      panY: canvas.height / 2 - center.y * magZoom,
+    };
+    drawPreparedBuffers2d(ctx, preparedBuffers, magCamera, canvas.width, canvas.height, {
+      showShadows: displayOptions.showShadows,
+      backgroundColor: displayOptions.backgroundColor,
+      nodeLineWidth: displayOptions.nodeLineWidth,
+      linkLineWidth: displayOptions.linkLineWidth,
+    });
+
+    ctx.strokeStyle = "rgba(255, 82, 82, 0.9)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2 - 14, canvas.height / 2);
+    ctx.lineTo(canvas.width / 2 + 14, canvas.height / 2);
+    ctx.moveTo(canvas.width / 2, canvas.height / 2 - 14);
+    ctx.lineTo(canvas.width / 2, canvas.height / 2 + 14);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(12, 18, 31, 0.7)";
+    ctx.fillRect(0, canvas.height - 22, canvas.width, 22);
+    ctx.fillStyle = "rgba(220, 233, 255, 0.92)";
+    ctx.font = "11px Inter, sans-serif";
+    ctx.fillText(`magnifier x${magnifierScale.toFixed(1)}`, 8, canvas.height - 7);
+  }, [
+    camera,
+    displayOptions.backgroundColor,
+    displayOptions.linkLineWidth,
+    displayOptions.nodeLineWidth,
+    displayOptions.showShadows,
+    magnifierScale,
+    mouseWorldPoint,
+    preparedBuffers,
+    scene,
+    showMagnifier,
+    viewport.height,
+    viewport.width,
+  ]);
+
   const searchResults = useMemo(() => {
     if (!scene || searchQuery.trim().length === 0) {
       return [] as NodeLayout[];
@@ -1242,6 +1346,7 @@ export function App() {
     if (!scene) {
       return;
     }
+    setContextMenu(null);
     if (event.button !== 0) {
       return;
     }
@@ -1467,6 +1572,7 @@ export function App() {
     if (!scene) {
       return;
     }
+    setContextMenu(null);
     const target = event.currentTarget;
     const rect = target.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -1481,6 +1587,80 @@ export function App() {
     }));
   };
 
+  const closeOpenMenus = () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    document.querySelectorAll<HTMLDetailsElement>(".menu-shell details[open]").forEach((details) => {
+      details.open = false;
+    });
+  };
+
+  const runMenuAction = (action: () => void) => {
+    action();
+    closeOpenMenus();
+  };
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const selectNodeFromContext = (nodeId: string, additive: boolean) => {
+    applySelection((next) => {
+      if (!additive) {
+        next.nodeIds.clear();
+        next.linkIndices.clear();
+      }
+      next.nodeIds.add(nodeId);
+    });
+    setContextMenu(null);
+  };
+
+  const selectLinkFromContext = (linkIndex: number, additive: boolean) => {
+    applySelection((next) => {
+      if (!additive) {
+        next.nodeIds.clear();
+        next.linkIndices.clear();
+      }
+      next.linkIndices.add(linkIndex);
+    });
+    setContextMenu(null);
+  };
+
+  const handleCanvasContextMenu = (event: ReactMouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    if (!scene) {
+      return;
+    }
+    const target = event.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    const hit = hitTest(
+      scene,
+      camera,
+      displayOptions,
+      displayOptions.showShadows,
+      alignmentView,
+      offsetX,
+      offsetY,
+    );
+    const maxX = Math.max(6, rect.width - 232);
+    const maxY = Math.max(6, rect.height - 210);
+    setContextMenu({
+      x: Math.min(maxX, Math.max(6, offsetX)),
+      y: Math.min(maxY, Math.max(6, offsetY)),
+      nodeId: hit?.nodeId ?? null,
+      linkIndex: hit?.linkIndex ?? null,
+    });
+  };
+
+  const contextNode = contextMenu?.nodeId && scene ? scene.nodes.find((node) => node.id === contextMenu.nodeId) ?? null : null;
+  const contextLink =
+    contextMenu?.linkIndex !== null && contextMenu?.linkIndex !== undefined && scene
+      ? scene.links[contextMenu.linkIndex] ?? null
+      : null;
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -1490,7 +1670,7 @@ export function App() {
         </div>
         <div className="header-actions">
           <label className="file-btn">
-            <input type="file" accept=".json,.sif,.bif,.xml" onChange={handleFileInput} />
+            <input ref={fileInputRef} type="file" accept=".json,.sif,.bif,.xml" onChange={handleFileInput} />
             Load file
           </label>
           <button type="button" onClick={exportPng} disabled={!scene}>
@@ -1505,6 +1685,179 @@ export function App() {
           </button>
         </div>
       </header>
+
+      <section className="menu-shell">
+        <nav className="menu-bar" aria-label="BioFabric menu">
+          <details className="menu">
+            <summary>File</summary>
+            <div className="menu-popup">
+              <button type="button" className="menu-item" onClick={() => runMenuAction(openFilePicker)}>
+                Load file
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(exportPng)}
+                disabled={!scene}
+              >
+                Export image (PNG)
+              </button>
+            </div>
+          </details>
+          <details className="menu">
+            <summary>Edit</summary>
+            <div className="menu-popup">
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setSelection(emptySelection()))}
+                disabled={!scene || (selection.nodeIds.size === 0 && selection.linkIndices.size === 0)}
+              >
+                Clear selections
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(addFirstNeighbors)}
+                disabled={!scene || selectionEntries.length === 0}
+              >
+                Add first neighbors
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setBuildSelect((prev) => !prev))}
+              >
+                Build select: {buildSelect ? "on" : "off"}
+              </button>
+            </div>
+          </details>
+          <details className="menu">
+            <summary>View</summary>
+            <div className="menu-popup">
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() =>
+                  runMenuAction(() =>
+                    setCamera((prev) => zoomAroundPoint(prev, 1.2, viewport.width / 2, viewport.height / 2)),
+                  )
+                }
+                disabled={!scene}
+              >
+                Zoom in
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() =>
+                  runMenuAction(() =>
+                    setCamera((prev) => zoomAroundPoint(prev, 0.85, viewport.width / 2, viewport.height / 2)),
+                  )
+                }
+                disabled={!scene}
+              >
+                Zoom out
+              </button>
+              <button type="button" className="menu-item" onClick={() => runMenuAction(() => setFitRequest((prev) => prev + 1))} disabled={!scene}>
+                Zoom to model
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setZoomRectArmed((prev) => !prev))}
+                disabled={!scene}
+              >
+                Zoom to rectangle: {zoomRectArmed ? "armed" : "off"}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(zoomToCurrentSelectionEntry)}
+                disabled={selectionEntries.length === 0}
+              >
+                Zoom to current selection
+              </button>
+            </div>
+          </details>
+          <details className="menu">
+            <summary>Layout</summary>
+            <div className="menu-popup">
+              {ALIGNMENT_VIEWS.map((entry) => (
+                <button
+                  key={entry.value}
+                  type="button"
+                  className={`menu-item${alignmentView === entry.value ? " menu-item--active" : ""}`}
+                  onClick={() => runMenuAction(() => setAlignmentView(entry.value))}
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
+          </details>
+          <details className="menu">
+            <summary>Tools</summary>
+            <div className="menu-popup">
+              <button type="button" className="menu-item" onClick={() => runMenuAction(() => searchInputRef.current?.focus())}>
+                Search
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(startTourFromSelection)}
+                disabled={selectionEntries.length === 0}
+              >
+                Start tour from selection
+              </button>
+            </div>
+          </details>
+          <details className="menu">
+            <summary>Windows</summary>
+            <div className="menu-popup">
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setShowNavPanel((prev) => !prev))}
+              >
+                Navigation panel: {showNavPanel ? "shown" : "hidden"}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setShowTourPanel((prev) => !prev))}
+              >
+                Tour controls: {showTourPanel ? "shown" : "hidden"}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() =>
+                  runMenuAction(() =>
+                    setDisplayOptions((prev) => ({ ...prev, showOverview: !prev.showOverview })),
+                  )
+                }
+              >
+                Overview panel: {displayOptions.showOverview ? "shown" : "hidden"}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => runMenuAction(() => setShowMagnifier((prev) => !prev))}
+              >
+                Magnifier panel: {showMagnifier ? "shown" : "hidden"}
+              </button>
+            </div>
+          </details>
+          <details className="menu">
+            <summary>Help</summary>
+            <div className="menu-popup">
+              <button type="button" className="menu-item" onClick={() => runMenuAction(() => setAboutOpen(true))}>
+                About
+              </button>
+            </div>
+          </details>
+        </nav>
+      </section>
 
       <section className="command-toolbar">
         <div className="toolbar-group">
@@ -1828,10 +2181,67 @@ export function App() {
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerLeave}
+              onContextMenu={handleCanvasContextMenu}
               onWheel={handleWheel}
             />
             {!scene && <div className="canvas-empty">Load a file to start rendering.</div>}
             {isPreparing && <div className="canvas-loading">Preparing buffers...</div>}
+            {contextMenu && (
+              <div
+                className="context-menu"
+                style={{ left: contextMenu.x, top: contextMenu.y }}
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                {contextNode && (
+                  <>
+                    <div className="context-menu-title">Node: {contextNode.name}</div>
+                    <button type="button" onClick={() => selectNodeFromContext(contextNode.id, false)}>
+                      Select node
+                    </button>
+                    <button type="button" onClick={() => selectNodeFromContext(contextNode.id, true)}>
+                      Add node to selection
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        locateNode(contextNode.id);
+                        setContextMenu(null);
+                      }}
+                    >
+                      Center on node
+                    </button>
+                  </>
+                )}
+                {contextLink && (
+                  <>
+                    <div className="context-menu-title">
+                      Link: {contextLink.sourceId} {contextLink.relation} {contextLink.targetId}
+                    </div>
+                    <button type="button" onClick={() => selectLinkFromContext(contextLink.index, false)}>
+                      Select link
+                    </button>
+                    <button type="button" onClick={() => selectLinkFromContext(contextLink.index, true)}>
+                      Add link to selection
+                    </button>
+                  </>
+                )}
+                {!contextNode && !contextLink && (
+                  <div className="context-menu-title">No selectable item</div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelection(emptySelection());
+                    setContextMenu(null);
+                  }}
+                >
+                  Clear selections
+                </button>
+                <button type="button" onClick={() => setContextMenu(null)}>
+                  Close
+                </button>
+              </div>
+            )}
           </div>
           {hover && (
             <div className="hover-box">
@@ -1856,6 +2266,14 @@ export function App() {
               />
               Show tour controls
             </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={showMagnifier}
+                onChange={(event) => setShowMagnifier(event.target.checked)}
+              />
+              Show magnifier
+            </label>
           </div>
 
           <canvas
@@ -1865,6 +2283,27 @@ export function App() {
             className="minimap"
             onPointerDown={handleOverviewClick}
           />
+
+          {showMagnifier && (
+            <div className="magnifier-panel">
+              <div className="magnifier-header">
+                <h3>Magnifier</h3>
+                <span>x{magnifierScale.toFixed(1)}</span>
+              </div>
+              <canvas ref={magnifierCanvasRef} width={220} height={150} className="minimap magnifier" />
+              <label className="magnifier-slider">
+                Scale
+                <input
+                  type="range"
+                  min={1.5}
+                  max={8}
+                  step={0.1}
+                  value={magnifierScale}
+                  onChange={(event) => setMagnifierScale(Number(event.target.value))}
+                />
+              </label>
+            </div>
+          )}
 
           {showTourPanel && (
             <div className="tour-panel">
@@ -1975,6 +2414,24 @@ export function App() {
               {warning}
             </p>
           ))}
+        </section>
+      )}
+
+      {aboutOpen && (
+        <section className="about-overlay" onPointerDown={() => setAboutOpen(false)}>
+          <article className="about-dialog" onPointerDown={(event) => event.stopPropagation()}>
+            <h2>About BioFabric Frontend</h2>
+            <p>
+              This web UI follows key interaction patterns from the Java BioFabric application: menu-style commands,
+              tour navigation controls, overview/magnifier panels, hover location strips, and deterministic rendering.
+            </p>
+            <p>
+              Current renderer backend: <strong>{backend}</strong>
+            </p>
+            <button type="button" onClick={() => setAboutOpen(false)}>
+              Close
+            </button>
+          </article>
         </section>
       )}
 
