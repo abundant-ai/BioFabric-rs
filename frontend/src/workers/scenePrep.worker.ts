@@ -31,5 +31,5 @@ self.onmessage = (event: MessageEvent<SceneWorkerRequest>) => {
     prepared.linkVerticesNoShadows.buffer,
   ];
 
-  self.postMessage(response, transfer);
+  self.postMessage(response, { transfer });
 };
