@@ -59,6 +59,7 @@ interface HoverInfo {
 
 interface PrepareWorkerMessage {
   type: "prepared";
+  requestId: number;
   payload: PreparedSceneBuffers;
 }
 
@@ -390,6 +391,8 @@ export function App() {
   const minimapCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<WebGl2LineRenderer | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  const nextPrepareRequestIdRef = useRef(0);
+  const activePrepareRequestIdRef = useRef(0);
 
   const dragStateRef = useRef<DragState>({
     mode: "none",
@@ -408,6 +411,9 @@ export function App() {
       if (event.data.type !== "prepared") {
         return;
       }
+      if (event.data.requestId !== activePrepareRequestIdRef.current) {
+        return;
+      }
       setPreparedBuffers(event.data.payload);
       setIsPreparing(false);
     };
@@ -424,7 +430,9 @@ export function App() {
 
   useEffect(() => {
     if (!scene) {
+      activePrepareRequestIdRef.current += 1;
       setPreparedBuffers(null);
+      setIsPreparing(false);
       return;
     }
 
@@ -447,10 +455,15 @@ export function App() {
       minLinkSpanPx: displayOptions.minLinkSpanPx,
     };
 
+    const requestId = nextPrepareRequestIdRef.current + 1;
+    nextPrepareRequestIdRef.current = requestId;
+    activePrepareRequestIdRef.current = requestId;
+
     setIsPreparing(true);
     if (workerRef.current) {
       workerRef.current.postMessage({
         type: "prepare",
+        requestId,
         payload: payloadForPrep,
       });
     } else {

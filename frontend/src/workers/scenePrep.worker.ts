@@ -2,11 +2,13 @@ import { buildPreparedSceneBuffers, type ScenePrepInput } from "../lib/scenePrep
 
 interface PrepareRequest {
   type: "prepare";
+  requestId: number;
   payload: ScenePrepInput;
 }
 
 interface PreparedResponse {
   type: "prepared";
+  requestId: number;
   payload: ReturnType<typeof buildPreparedSceneBuffers>;
 }
 
@@ -21,6 +23,7 @@ self.onmessage = (event: MessageEvent<SceneWorkerRequest>) => {
   const prepared = buildPreparedSceneBuffers(event.data.payload);
   const response: SceneWorkerResponse = {
     type: "prepared",
+    requestId: event.data.requestId,
     payload: prepared,
   };
 
