@@ -15,6 +15,13 @@ Cargo.lock
 *.log
 **/__pycache__/
 
+# Frontend artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/npm-debug.log*
+
 # Golden files — regenerate with: ./tests/parity/generate_goldens.sh
 # These are large (BIF files can be 15MB+ each) and are generated from
 # the Java BioFabric source in a Docker container. The parity tests
