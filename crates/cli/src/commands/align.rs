@@ -19,13 +19,8 @@ pub fn run(args: AlignArgs, quiet: bool) -> Result<(), Box<dyn std::error::Error
 
     // Merge networks
     let show_shadows = args.shadows && !args.no_shadows;
-    let merged = MergedNetwork::from_alignment(
-        &g1,
-        &g2,
-        &alignment,
-        perfect.as_ref(),
-        &NoopMonitor,
-    )?;
+    let merged =
+        MergedNetwork::from_alignment(&g1, &g2, &alignment, perfect.as_ref(), &NoopMonitor)?;
 
     // Compute scores if requested
     if args.score {
@@ -83,12 +78,8 @@ pub fn run(args: AlignArgs, quiet: bool) -> Result<(), Box<dyn std::error::Error
         };
 
         let node_order = node_layout.layout_nodes(&merged_net, &params, &NoopMonitor)?;
-        let mut build_data = LayoutBuildData::new(
-            merged_net,
-            node_order,
-            show_shadows,
-            LayoutMode::PerNode,
-        );
+        let mut build_data =
+            LayoutBuildData::new(merged_net, node_order, show_shadows, LayoutMode::PerNode);
 
         let edge_layout = AlignmentEdgeLayout::new(mode);
         let layout = edge_layout.layout_edges(&mut build_data, &params, &NoopMonitor)?;
@@ -106,9 +97,28 @@ pub fn run(args: AlignArgs, quiet: bool) -> Result<(), Box<dyn std::error::Error
                 );
                 FabricFactory::save_session(&session, output)?;
             }
+            "png" | "jpg" | "jpeg" | "tif" | "tiff" => {
+                let mut session = biofabric_core::io::session::Session::with_layout(
+                    merged.network.clone(),
+                    layout,
+                );
+                session.display_options =
+                    biofabric_core::io::display_options::DisplayOptions::for_image_export(
+                        show_shadows,
+                    );
+                let image_options = biofabric_core::render::RenderImageOptions::new(
+                    args.width.max(1),
+                    if args.height == 0 {
+                        None
+                    } else {
+                        Some(args.height)
+                    },
+                );
+                biofabric_core::render::render_session_to_path(&session, output, &image_options)?;
+            }
             _ => {
                 return Err(format!(
-                    "Unsupported output format '{}'. Use .json, .bif, or .xml",
+                    "Unsupported output format '{}'. Use .json, .bif, .xml, or image (.png/.jpg/.jpeg/.tif/.tiff)",
                     ext
                 )
                 .into());
