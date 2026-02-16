@@ -1380,8 +1380,8 @@ export function App() {
 
       <footer className="app-footer">
         <small>
-          Rendering pipeline: typed parsing -> worker buffer preparation -> {backend} draw pass -> overlay annotations,
-          labels, and selection.
+          Rendering pipeline: typed parsing to worker buffer preparation to {backend} draw pass, then overlay
+          annotations, labels, and selection.
         </small>
         <small>Default line width target: {defaultRendererConfig.lineWidthPx}px</small>
       </footer>
