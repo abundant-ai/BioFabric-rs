@@ -10,4 +10,5 @@ pub mod export_order;
 pub mod extract;
 pub mod info;
 pub mod layout;
+pub mod render;
 pub mod search;

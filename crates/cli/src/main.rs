@@ -53,6 +53,7 @@ fn main() {
 
     let result = match cli.command {
         Commands::Layout(args) => commands::layout::run(args, cli.quiet),
+        Commands::Render(args) => commands::render::run(args, cli.quiet),
         Commands::Info(args) => commands::info::run(args),
         Commands::Convert(args) => commands::convert::run(args, cli.quiet),
         Commands::Align(args) => commands::align::run(args, cli.quiet),

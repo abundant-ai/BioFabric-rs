@@ -81,9 +81,7 @@ impl AttributeTable {
     pub fn group_by(&self, attribute: &str) -> HashMap<NodeId, String> {
         self.node_attributes
             .iter()
-            .filter_map(|(id, attrs)| {
-                attrs.get(attribute).map(|v| (id.clone(), v.clone()))
-            })
+            .filter_map(|(id, attrs)| attrs.get(attribute).map(|v| (id.clone(), v.clone())))
             .collect()
     }
 
@@ -106,23 +104,168 @@ pub fn parse_file(path: &Path) -> Result<AttributeTable, ParseError> {
 
 /// Load attributes from any reader.
 pub fn parse_reader<R: Read>(reader: BufReader<R>) -> Result<AttributeTable, ParseError> {
-    // TODO: Implement attribute loading
-    //
-    // Algorithm:
-    // 1. Read first line as header: split by tab → column_names (skip first column "node_id")
-    // 2. For each subsequent line:
-    //    a. Split by tab
-    //    b. First token = node ID
-    //    c. Remaining tokens = attribute values (zipped with column_names)
-    //    d. Insert into node_attributes map
-    // 3. Skip empty lines and comment lines (# prefix)
-    //
-    // See Java: org.systemsbiology.biofabric.io.AttributeLoader
-    //
-    todo!("Implement attribute loader - see AttributeLoader.java")
+    fn split_columns(line: &str) -> Vec<&str> {
+        if line.contains('\t') {
+            line.split('\t').collect()
+        } else {
+            line.split_whitespace().collect()
+        }
+    }
+
+    fn unquote(value: &str) -> &str {
+        let t = value.trim();
+        if t.len() >= 2
+            && ((t.starts_with('"') && t.ends_with('"'))
+                || (t.starts_with('\'') && t.ends_with('\'')))
+        {
+            &t[1..t.len() - 1]
+        } else {
+            t
+        }
+    }
+
+    let mut table = AttributeTable::default();
+    let mut saw_header = false;
+
+    for (idx, line_result) in reader.lines().enumerate() {
+        let line_num = idx + 1;
+        let line = line_result?;
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+
+        // First non-empty, non-comment line is the header.
+        if !saw_header {
+            let mut cols = split_columns(trimmed);
+            if cols.is_empty() {
+                continue;
+            }
+            if let Some(first) = cols.get_mut(0) {
+                // Strip UTF-8 BOM if present.
+                if let Some(stripped) = first.strip_prefix('\u{feff}') {
+                    *first = stripped;
+                }
+            }
+            if cols.len() < 2 {
+                return Err(ParseError::InvalidHeader(
+                    "attribute file header must include node_id plus at least one attribute column"
+                        .to_string(),
+                ));
+            }
+
+            let node_col = cols[0].trim().to_ascii_lowercase();
+            if node_col != "node_id" && node_col != "node" && node_col != "id" {
+                return Err(ParseError::InvalidHeader(format!(
+                    "first header column must be node_id (found '{}')",
+                    cols[0].trim()
+                )));
+            }
+
+            let mut seen = std::collections::HashSet::new();
+            let mut attr_cols = Vec::new();
+            for col in cols.iter().skip(1) {
+                let name = col.trim();
+                if name.is_empty() {
+                    return Err(ParseError::InvalidHeader(
+                        "attribute header contains an empty column name".to_string(),
+                    ));
+                }
+                if !seen.insert(name.to_ascii_lowercase()) {
+                    return Err(ParseError::InvalidHeader(format!(
+                        "duplicate attribute column '{}'",
+                        name
+                    )));
+                }
+                attr_cols.push(name.to_string());
+            }
+
+            table.column_names = attr_cols;
+            saw_header = true;
+            continue;
+        }
+
+        let cols = split_columns(trimmed);
+        if cols.is_empty() {
+            continue;
+        }
+
+        let node_name = unquote(cols[0]);
+        if node_name.is_empty() {
+            return Err(ParseError::InvalidFormat {
+                line: line_num,
+                message: "missing node id in attribute row".to_string(),
+            });
+        }
+
+        let node_id = NodeId::new(node_name);
+        let per_node = table.node_attributes.entry(node_id).or_default();
+        for (attr_idx, attr_name) in table.column_names.iter().enumerate() {
+            let value = cols.get(attr_idx + 1).map_or("", |v| unquote(v));
+            if !value.is_empty() {
+                per_node.insert(attr_name.clone(), value.to_string());
+            }
+        }
+    }
+
+    if !saw_header {
+        return Err(ParseError::InvalidHeader(
+            "attribute file is empty or missing a header row".to_string(),
+        ));
+    }
+
+    Ok(table)
 }
 
 /// Load attributes from a string.
 pub fn parse_string(content: &str) -> Result<AttributeTable, ParseError> {
     parse_reader(BufReader::new(content.as_bytes()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_attribute_table_single_column() {
+        let content = "\
+node_id\tcluster
+A\tc1
+B\tc2
+C\tc1
+";
+        let table = parse_string(content).expect("table should parse");
+        assert_eq!(table.column_names, vec!["cluster".to_string()]);
+        assert_eq!(table.get(&NodeId::new("A"), "cluster"), Some("c1"));
+        assert_eq!(table.get(&NodeId::new("B"), "cluster"), Some("c2"));
+    }
+
+    #[test]
+    fn parse_attribute_table_multi_column_and_comments() {
+        let content = "\
+# comment
+node_id\tcluster\trole
+A\tc1\tkinase
+
+# comment 2
+B\tc2\ttf
+";
+        let table = parse_string(content).expect("table should parse");
+        assert_eq!(table.column_names, vec!["cluster", "role"]);
+        assert_eq!(table.get(&NodeId::new("A"), "role"), Some("kinase"));
+        assert_eq!(table.get(&NodeId::new("B"), "cluster"), Some("c2"));
+    }
+
+    #[test]
+    fn parse_attribute_table_rejects_missing_header() {
+        let err = parse_string("").expect_err("empty content should fail");
+        assert!(matches!(err, ParseError::InvalidHeader(_)));
+    }
+
+    #[test]
+    fn parse_attribute_table_rejects_bad_first_column() {
+        let err = parse_string("name\tcluster\nA\tc1\n")
+            .expect_err("bad header first column should fail");
+        assert!(matches!(err, ParseError::InvalidHeader(_)));
+    }
 }

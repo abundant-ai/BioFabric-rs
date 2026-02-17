@@ -46,6 +46,26 @@ cargo test --test analysis_tests
 cargo test --test cli_tests
 ```
 
+## CLI quick examples
+
+```bash
+# Compute a layout JSON
+biofabric layout tests/parity/networks/sif/triangle.sif -o triangle_layout.json
+
+# Render from a network (layout computed automatically)
+biofabric render tests/parity/networks/sif/triangle.sif -o triangle.png --width 1600
+
+# Render from a saved session
+biofabric render tests/parity/networks/bif/CaseStudy-IV.bif -o case_study.png --width 2200
+
+# Alignment output directly to image
+biofabric align \
+  tests/parity/networks/sif/align_net1.sif \
+  tests/parity/networks/sif/align_net2.sif \
+  tests/parity/networks/align/test_perfect.align \
+  -o aligned.png --width 1800
+```
+
 ## References
 
 - **BioFabric**: Longabaugh, W. J. R. (2012). [Combing the hairball with BioFabric: a new approach for visualization of large networks](https://doi.org/10.1186/1471-2105-13-275). *BMC Bioinformatics*, 13(1), 275.

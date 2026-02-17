@@ -28,6 +28,14 @@ pub enum BioFabricError {
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 
+    /// Image encoding / decoding error.
+    #[error("Image error: {0}")]
+    Image(#[from] image::ImageError),
+
+    /// Render pipeline error.
+    #[error("Render error: {0}")]
+    Render(String),
+
     /// An operation was cancelled by the user.
     #[error("Operation cancelled")]
     Cancelled(#[from] crate::worker::CancelledError),

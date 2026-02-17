@@ -19,6 +19,14 @@ pub enum Commands {
     /// be exported or saved as a BioFabric XML session.
     Layout(LayoutArgs),
 
+    /// Render a layout/session/network input to an image file.
+    ///
+    /// Accepts:
+    /// - `.bif` / `.xml` session files
+    /// - `.json` session/layout/network files
+    /// - `.sif` / `.gw` network files (layout computed automatically)
+    Render(RenderArgs),
+
     /// Print information about a network file.
     ///
     /// Shows node count, link count, relation types, connected components,
@@ -111,7 +119,9 @@ pub struct LayoutArgs {
     #[arg(long, default_value = "bfs", value_enum)]
     pub cluster_order: ClusterOrderMode,
 
-    /// Attribute name for set membership (--algorithm set).
+    /// Relation type to treat as set-membership edges (--algorithm set).
+    ///
+    /// If omitted, all relation types are considered membership edges.
     #[arg(long)]
     pub set_attribute: Option<String>,
 
@@ -155,6 +165,36 @@ pub struct LayoutArgs {
     /// layout algorithm. The file must list every node in the network.
     #[arg(long)]
     pub node_order: Option<PathBuf>,
+}
+
+// ==========================================================================
+// Render command
+// ==========================================================================
+
+#[derive(Args, Debug)]
+pub struct RenderArgs {
+    /// Input file (.bif, .xml, .json, .sif, .gw).
+    pub input: PathBuf,
+
+    /// Output image file (.png, .jpg/.jpeg, .tif/.tiff).
+    #[arg(short, long)]
+    pub output: PathBuf,
+
+    /// Image width in pixels.
+    #[arg(long, default_value_t = 1920)]
+    pub width: u32,
+
+    /// Image height in pixels (0 = auto).
+    #[arg(long, default_value_t = 0)]
+    pub height: u32,
+
+    /// Include shadow links.
+    #[arg(long, default_value_t = true)]
+    pub shadows: bool,
+
+    /// Disable shadow links.
+    #[arg(long)]
+    pub no_shadows: bool,
 }
 
 // ==========================================================================
