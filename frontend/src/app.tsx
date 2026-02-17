@@ -48,6 +48,13 @@ import {
   type WorldRect,
 } from "./state/viewState";
 import { rgbaFromHex, rgbaToCss } from "./lib/colors";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 interface ViewportSize {
   width: number;
@@ -1717,27 +1724,30 @@ export function App() {
   const hasMouseOverImageMap = payload ? Object.keys(payload.mouseOverImages).length > 0 : false;
 
   return (
-    <main className="app-shell">
+    <main className="app-shell dark">
+      <input ref={fileInputRef} className="hidden-file-input" type="file" accept=".json,.sif,.bif,.xml" onChange={handleFileInput} />
       <header className="app-header">
         <div>
-          <h1>BioFabric Frontend</h1>
+          <h1>
+            BioFabric Frontend <Badge variant="secondary">Modern UI</Badge>
+          </h1>
           <p>Interactive session/layout viewer with pan, zoom, selection, search, annotations, overview, and export.</p>
         </div>
         <div className="header-actions">
-          <label className="file-btn">
-            <input ref={fileInputRef} type="file" accept=".json,.sif,.bif,.xml" onChange={handleFileInput} />
+          <Button type="button" onClick={openFilePicker}>
             Load file
-          </label>
-          <button type="button" onClick={exportPng} disabled={!scene}>
+          </Button>
+          <Button type="button" variant="secondary" onClick={exportPng} disabled={!scene}>
             Export PNG
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setBackend((prev) => (prev === "webgl2" ? "cpu-fallback" : "webgl2"))}
             disabled={!rendererInfo.webgl2Supported}
           >
             {backend === "webgl2" ? "Use CPU fallback" : "Use WebGL2"}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -1916,8 +1926,10 @@ export function App() {
 
       <section className="command-toolbar">
         <div className="toolbar-group">
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="secondary"
             onClick={() =>
               setCamera((prev) =>
                 zoomAroundPoint(prev, 0.85, viewport.width / 2, viewport.height / 2),
@@ -1926,9 +1938,10 @@ export function App() {
             disabled={!scene}
           >
             Zoom Out
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
             onClick={() =>
               setCamera((prev) =>
                 zoomAroundPoint(prev, 1.2, viewport.width / 2, viewport.height / 2),
@@ -1937,72 +1950,94 @@ export function App() {
             disabled={!scene}
           >
             Zoom In
-          </button>
-          <button type="button" onClick={() => setFitRequest((prev) => prev + 1)} disabled={!scene}>
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => setFitRequest((prev) => prev + 1)} disabled={!scene}>
             Zoom to Model
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            variant={zoomRectArmed ? "default" : "secondary"}
             onClick={() => setZoomRectArmed((prev) => !prev)}
             disabled={!scene}
             className={zoomRectArmed ? "active-toggle" : undefined}
           >
             Zoom Rect
-          </button>
+          </Button>
         </div>
         <div className="toolbar-group">
-          <button type="button" onClick={() => moveSelectionCursor(-1)} disabled={selectionEntries.length === 0}>
+          <Button type="button" size="sm" variant="secondary" onClick={() => moveSelectionCursor(-1)} disabled={selectionEntries.length === 0}>
             Prev Selection
-          </button>
-          <button type="button" onClick={zoomToCurrentSelectionEntry} disabled={selectionEntries.length === 0}>
+          </Button>
+          <Button type="button" size="sm" onClick={zoomToCurrentSelectionEntry} disabled={selectionEntries.length === 0}>
             Zoom Selection
-          </button>
-          <button type="button" onClick={() => moveSelectionCursor(1)} disabled={selectionEntries.length === 0}>
+          </Button>
+          <Button type="button" size="sm" variant="secondary" onClick={() => moveSelectionCursor(1)} disabled={selectionEntries.length === 0}>
             Next Selection
-          </button>
+          </Button>
         </div>
         <div className="toolbar-group">
-          <button type="button" onClick={addFirstNeighbors} disabled={!scene || selectionEntries.length === 0}>
+          <Button type="button" size="sm" onClick={addFirstNeighbors} disabled={!scene || selectionEntries.length === 0}>
             Add First Neighbors
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            variant="outline"
             onClick={() => setSelection(emptySelection())}
             disabled={!scene || (selection.nodeIds.size === 0 && selection.linkIndices.size === 0)}
           >
             Clear Selections
-          </button>
-          <button type="button" onClick={() => searchInputRef.current?.focus()} disabled={!scene}>
+          </Button>
+          <Button type="button" size="sm" variant="secondary" onClick={() => searchInputRef.current?.focus()} disabled={!scene}>
             Search
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            variant={displayOptions.showShadows ? "default" : "secondary"}
             onClick={() => setDisplayOptions((prev) => ({ ...prev, showShadows: !prev.showShadows }))}
             disabled={!scene}
             className={displayOptions.showShadows ? "active-toggle" : undefined}
           >
             Toggle Shadows
-          </button>
+          </Button>
         </div>
       </section>
 
       <section className="status-grid">
-        <article className="status-card">
-          <h2>Renderer backend</h2>
-          <p>{backend}</p>
-        </article>
-        <article className="status-card">
-          <h2>WebGL2 support</h2>
-          <p>{rendererInfo.webgl2Supported ? "available" : "not available"}</p>
-        </article>
-        <article className="status-card">
-          <h2>Source</h2>
-          <p>{payload ? formatSourceKind(payload.sourceKind) : "none"}</p>
-        </article>
-        <article className="status-card">
-          <h2>Scene stats</h2>
-          <p>{scene ? `${scene.nodes.length} nodes / ${scene.links.length} links` : "no scene loaded"}</p>
-        </article>
+        <Card className="status-card">
+          <CardHeader className="status-card-header">
+            <CardTitle>Renderer backend</CardTitle>
+          </CardHeader>
+          <CardContent className="status-card-content">
+            <p>{backend}</p>
+          </CardContent>
+        </Card>
+        <Card className="status-card">
+          <CardHeader className="status-card-header">
+            <CardTitle>WebGL2 support</CardTitle>
+          </CardHeader>
+          <CardContent className="status-card-content">
+            <p>{rendererInfo.webgl2Supported ? "available" : "not available"}</p>
+          </CardContent>
+        </Card>
+        <Card className="status-card">
+          <CardHeader className="status-card-header">
+            <CardTitle>Source</CardTitle>
+          </CardHeader>
+          <CardContent className="status-card-content">
+            <p>{payload ? formatSourceKind(payload.sourceKind) : "none"}</p>
+          </CardContent>
+        </Card>
+        <Card className="status-card">
+          <CardHeader className="status-card-header">
+            <CardTitle>Scene stats</CardTitle>
+          </CardHeader>
+          <CardContent className="status-card-content">
+            <p>{scene ? `${scene.nodes.length} nodes / ${scene.links.length} links` : "no scene loaded"}</p>
+          </CardContent>
+        </Card>
       </section>
 
       <section
@@ -2013,7 +2048,7 @@ export function App() {
           <div className="control-group">
             <label>
               Search node
-              <input
+              <Input
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -2024,9 +2059,9 @@ export function App() {
             </label>
             <div className="search-results">
               {searchResults.map((node) => (
-                <button key={node.id} type="button" onClick={() => locateNode(node.id)}>
+                <Button key={node.id} type="button" size="sm" variant="ghost" className="search-result-btn" onClick={() => locateNode(node.id)}>
                   {node.name}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -2034,87 +2069,79 @@ export function App() {
           <div className="control-group">
             <label>
               Alignment view
-              <select
-                value={alignmentView}
-                onChange={(event) => setAlignmentView(event.target.value as AlignmentViewMode)}
-              >
+              <Select value={alignmentView} onValueChange={(value) => setAlignmentView(value as AlignmentViewMode)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select view" />
+                </SelectTrigger>
+                <SelectContent>
                 {ALIGNMENT_VIEWS.map((entry) => (
-                  <option key={entry.value} value={entry.value}>
+                  <SelectItem key={entry.value} value={entry.value}>
                     {entry.label}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+                </SelectContent>
+              </Select>
             </label>
           </div>
 
           <div className="control-group check-grid">
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Show shadows</span>
+              <Switch
                 checked={displayOptions.showShadows}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showShadows: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showShadows: checked }))
                 }
               />
-              Show shadows
             </label>
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Show annotations</span>
+              <Switch
                 checked={displayOptions.showAnnotations}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showAnnotations: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showAnnotations: checked }))
                 }
               />
-              Show annotations
             </label>
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Annotation labels</span>
+              <Switch
                 checked={displayOptions.showAnnotationLabels}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showAnnotationLabels: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showAnnotationLabels: checked }))
                 }
               />
-              Annotation labels
             </label>
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Node labels</span>
+              <Switch
                 checked={displayOptions.showNodeLabels}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showNodeLabels: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showNodeLabels: checked }))
                 }
               />
-              Node labels
             </label>
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Link labels</span>
+              <Switch
                 checked={displayOptions.showLinkLabels}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showLinkLabels: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showLinkLabels: checked }))
                 }
               />
-              Link labels
             </label>
-            <label>
-              <input
-                type="checkbox"
+            <label className="toggle-row">
+              <span>Overview panel</span>
+              <Switch
                 checked={displayOptions.showOverview}
-                onChange={(event) =>
-                  setDisplayOptions((prev) => ({ ...prev, showOverview: event.target.checked }))
+                onCheckedChange={(checked) =>
+                  setDisplayOptions((prev) => ({ ...prev, showOverview: checked }))
                 }
               />
-              Overview panel
             </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={buildSelect}
-                onChange={(event) => setBuildSelect(event.target.checked)}
-              />
-              Build select (accumulate picks)
+            <label className="toggle-row">
+              <span>Build select (accumulate picks)</span>
+              <Switch checked={buildSelect} onCheckedChange={(checked) => setBuildSelect(checked)} />
             </label>
           </div>
 
@@ -2170,11 +2197,13 @@ export function App() {
           </div>
 
           <div className="control-row">
-            <button type="button" onClick={() => setFitRequest((prev) => prev + 1)} disabled={!scene}>
+            <Button type="button" size="sm" variant="secondary" onClick={() => setFitRequest((prev) => prev + 1)} disabled={!scene}>
               Fit scene
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               onClick={() => {
                 const bounds = scene ? selectionBounds(scene, selection, displayOptions.showShadows) : null;
                 if (bounds) {
@@ -2184,11 +2213,12 @@ export function App() {
               disabled={!scene || selection.nodeIds.size + selection.linkIndices.size === 0}
             >
               Focus selection
-            </button>
+            </Button>
           </div>
           <div className="control-row">
-            <button
+            <Button
               type="button"
+              size="sm"
               onClick={() =>
                 setCamera((prev) =>
                   zoomAroundPoint(prev, 1.2, viewport.width / 2, viewport.height / 2),
@@ -2197,9 +2227,11 @@ export function App() {
               disabled={!scene}
             >
               Zoom in
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="secondary"
               onClick={() =>
                 setCamera((prev) =>
                   zoomAroundPoint(prev, 0.85, viewport.width / 2, viewport.height / 2),
@@ -2208,14 +2240,16 @@ export function App() {
               disabled={!scene}
             >
               Zoom out
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               onClick={() => setSelection(emptySelection())}
               disabled={!scene || (selection.nodeIds.size === 0 && selection.linkIndices.size === 0)}
             >
               Clear selection
-            </button>
+            </Button>
           </div>
         </aside>
 
@@ -2250,13 +2284,15 @@ export function App() {
                 {contextNode && (
                   <>
                     <div className="context-menu-title">Node: {contextNode.name}</div>
-                    <button type="button" onClick={() => selectNodeFromContext(contextNode.id, false)}>
+                    <Button size="sm" variant="secondary" type="button" onClick={() => selectNodeFromContext(contextNode.id, false)}>
                       Select node
-                    </button>
-                    <button type="button" onClick={() => selectNodeFromContext(contextNode.id, true)}>
+                    </Button>
+                    <Button size="sm" variant="secondary" type="button" onClick={() => selectNodeFromContext(contextNode.id, true)}>
                       Add node to selection
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       type="button"
                       onClick={() => {
                         locateNode(contextNode.id);
@@ -2264,7 +2300,7 @@ export function App() {
                       }}
                     >
                       Center on node
-                    </button>
+                    </Button>
                   </>
                 )}
                 {contextLink && (
@@ -2272,18 +2308,20 @@ export function App() {
                     <div className="context-menu-title">
                       Link: {contextLink.sourceId} {contextLink.relation} {contextLink.targetId}
                     </div>
-                    <button type="button" onClick={() => selectLinkFromContext(contextLink.index, false)}>
+                    <Button size="sm" variant="secondary" type="button" onClick={() => selectLinkFromContext(contextLink.index, false)}>
                       Select link
-                    </button>
-                    <button type="button" onClick={() => selectLinkFromContext(contextLink.index, true)}>
+                    </Button>
+                    <Button size="sm" variant="secondary" type="button" onClick={() => selectLinkFromContext(contextLink.index, true)}>
                       Add link to selection
-                    </button>
+                    </Button>
                   </>
                 )}
                 {!contextNode && !contextLink && (
                   <div className="context-menu-title">No selectable item</div>
                 )}
-                <button
+                <Button
+                  size="sm"
+                  variant="outline"
                   type="button"
                   onClick={() => {
                     setSelection(emptySelection());
@@ -2291,10 +2329,10 @@ export function App() {
                   }}
                 >
                   Clear selections
-                </button>
-                <button type="button" onClick={() => setContextMenu(null)}>
+                </Button>
+                <Button size="sm" variant="outline" type="button" onClick={() => setContextMenu(null)}>
                   Close
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -2309,25 +2347,17 @@ export function App() {
         <aside className="side-panel">
           <h2>Overview + metrics</h2>
           <div className="control-group check-grid">
-            <label>
-              <input type="checkbox" checked={showNavPanel} onChange={(event) => setShowNavPanel(event.target.checked)} />
-              Show nav panel
+            <label className="toggle-row">
+              <span>Show nav panel</span>
+              <Switch checked={showNavPanel} onCheckedChange={(checked) => setShowNavPanel(checked)} />
             </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={showTourPanel}
-                onChange={(event) => setShowTourPanel(event.target.checked)}
-              />
-              Show tour controls
+            <label className="toggle-row">
+              <span>Show tour controls</span>
+              <Switch checked={showTourPanel} onCheckedChange={(checked) => setShowTourPanel(checked)} />
             </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={showMagnifier}
-                onChange={(event) => setShowMagnifier(event.target.checked)}
-              />
-              Show magnifier
+            <label className="toggle-row">
+              <span>Show magnifier</span>
+              <Switch checked={showMagnifier} onCheckedChange={(checked) => setShowMagnifier(checked)} />
             </label>
           </div>
 
@@ -2386,57 +2416,55 @@ export function App() {
             <div className="tour-panel">
               <h3>Tour</h3>
               <div className="control-row">
-                <button type="button" onClick={startTourFromSelection} disabled={selectionEntries.length === 0}>
+                <Button type="button" size="sm" onClick={startTourFromSelection} disabled={selectionEntries.length === 0}>
                   Start at current
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  size="sm"
+                  variant={tourArmed ? "default" : "secondary"}
                   onClick={chooseTourStart}
                   className={tourArmed ? "active-toggle" : undefined}
                   disabled={!scene}
                 >
                   Choose a start
-                </button>
+                </Button>
               </div>
               <div className="control-row">
-                <button type="button" onClick={() => jumpTour("first")} disabled={selectionEntries.length === 0}>
+                <Button type="button" size="sm" variant="outline" onClick={() => jumpTour("first")} disabled={selectionEntries.length === 0}>
                   {"<<"}
-                </button>
-                <button type="button" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
+                </Button>
+                <Button type="button" size="sm" variant="secondary" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
                   Left
-                </button>
-                <button type="button" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
+                </Button>
+                <Button type="button" size="sm" variant="secondary" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
                   Right
-                </button>
-                <button type="button" onClick={() => jumpTour("last")} disabled={selectionEntries.length === 0}>
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => jumpTour("last")} disabled={selectionEntries.length === 0}>
                   {">>"}
-                </button>
+                </Button>
               </div>
               <div className="control-row">
-                <button type="button" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
+                <Button type="button" size="sm" variant="secondary" onClick={() => moveTour(-1)} disabled={selectionEntries.length === 0}>
                   Up
-                </button>
-                <button type="button" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
+                </Button>
+                <Button type="button" size="sm" variant="secondary" onClick={() => moveTour(1)} disabled={selectionEntries.length === 0}>
                   Down
-                </button>
-                <button type="button" onClick={clearTour} disabled={tourIndex === null && !tourArmed}>
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={clearTour} disabled={tourIndex === null && !tourArmed}>
                   Clear
-                </button>
+                </Button>
               </div>
               <div className="control-row">
-                <button type="button" onClick={zoomToTourStop} disabled={!activeTourEntry}>
+                <Button type="button" size="sm" onClick={zoomToTourStop} disabled={!activeTourEntry}>
                   Zoom
-                </button>
-                <button type="button" onClick={tourToLinkZone} disabled={!activeTourEntry}>
+                </Button>
+                <Button type="button" size="sm" variant="secondary" onClick={tourToLinkZone} disabled={!activeTourEntry}>
                   To link zone
-                </button>
-                <label className="tour-check">
-                  <input
-                    type="checkbox"
-                    checked={tourSelectionOnly}
-                    onChange={(event) => setTourSelectionOnly(event.target.checked)}
-                  />
-                  selected only
+                </Button>
+                <label className="tour-check toggle-row toggle-row--compact">
+                  <span>selected only</span>
+                  <Switch checked={tourSelectionOnly} onCheckedChange={(checked) => setTourSelectionOnly(checked)} />
                 </label>
               </div>
               <p className="tour-status">
@@ -2494,23 +2522,25 @@ export function App() {
         </section>
       )}
 
-      {aboutOpen && (
-        <section className="about-overlay" onPointerDown={() => setAboutOpen(false)}>
-          <article className="about-dialog" onPointerDown={(event) => event.stopPropagation()}>
-            <h2>About BioFabric Frontend</h2>
-            <p>
+      <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
+        <DialogContent className="about-dialog">
+          <DialogHeader>
+            <DialogTitle>About BioFabric Frontend</DialogTitle>
+            <DialogDescription>
               This web UI follows key interaction patterns from the Java BioFabric application: menu-style commands,
               tour navigation controls, overview/magnifier panels, hover location strips, and deterministic rendering.
-            </p>
-            <p>
-              Current renderer backend: <strong>{backend}</strong>
-            </p>
-            <button type="button" onClick={() => setAboutOpen(false)}>
+            </DialogDescription>
+          </DialogHeader>
+          <p className="about-copy">
+            Current renderer backend: <strong>{backend}</strong>
+          </p>
+          <div className="about-actions">
+            <Button type="button" variant="outline" onClick={() => setAboutOpen(false)}>
               Close
-            </button>
-          </article>
-        </section>
-      )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <footer className="app-footer">
         <small>
