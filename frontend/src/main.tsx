@@ -9,6 +9,8 @@ if (!rootElement) {
   throw new Error("Missing root element");
 }
 
+document.documentElement.classList.add("dark");
+
 createRoot(rootElement).render(
   <React.StrictMode>
     <App />
