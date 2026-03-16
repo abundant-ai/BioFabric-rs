@@ -45,7 +45,7 @@ pub struct DisplayOptions {
     /// Whether to show node labels (names beside each horizontal line).
     ///
     /// At high zoom, individual node labels become readable. At low zoom
-    /// they are clutter and should be hidden.
+    /// they are clutter and should be omitted.
     pub show_node_labels: bool,
 
     /// Whether to show link relation labels (names beside each vertical line).
@@ -53,7 +53,7 @@ pub struct DisplayOptions {
 
     /// Minimum zoom level (pixels per grid unit) at which labels appear.
     ///
-    /// Below this threshold, labels are hidden even if `show_node_labels`
+    /// Below this threshold, labels are omitted even if `show_node_labels`
     /// or `show_link_labels` is true. This prevents illegible label clutter
     /// at low zoom.
     pub label_min_zoom: f64,

@@ -110,7 +110,7 @@ impl Default for NetworkLayout {
 ///
 /// Two spans are stored so shadow toggle is O(1):
 /// - `(min_col, max_col)` — span when shadow links are displayed
-/// - `(min_col_no_shadows, max_col_no_shadows)` — span when shadows are hidden
+/// - `(min_col_no_shadows, max_col_no_shadows)` — span when shadows are omitted
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeLayout {
     /// The row this node is assigned to (y-coordinate).
@@ -231,7 +231,7 @@ impl NodeLayout {
 ///
 /// Each link stores two column numbers:
 /// - `column` — position when shadow links are displayed
-/// - `column_no_shadows` — position when shadows are hidden (`None` for shadow links,
+/// - `column_no_shadows` — position when shadows are omitted (`None` for shadow links,
 ///   since they are invisible in that mode)
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -239,9 +239,9 @@ pub struct LinkLayout {
     /// Column when shadow links are displayed.
     pub column: usize,
 
-    /// Column when shadow links are hidden.
+    /// Column when shadow links are omitted.
     ///
-    /// `None` for shadow links (they are hidden in no-shadow mode).
+    /// `None` for shadow links (they are omitted in no-shadow mode).
     /// For regular links, this will be `Some(col)` where `col ≤ column`
     /// because shadow link columns are removed.
     pub column_no_shadows: Option<usize>,
