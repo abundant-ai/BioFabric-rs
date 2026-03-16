@@ -844,6 +844,19 @@ if no_only_filter || $ONLY_ALIGN; then
         fi
     done
 
+    if [ -z "$FILTER" ] || [ "$FILTER" = "mmus_atha" ] || [ "$FILTER" = "align" ]; then
+        TOTAL=$((TOTAL + 1))
+        echo -n "  [$TOTAL] align_mmus_atha ... "
+        rc=0; run_one_multi "align_mmus_atha" \
+            "$NETWORKS_DIR/gw:/networks:ro" \
+            "$NETWORKS_DIR/align:/align:ro" \
+            -- \
+            "/networks/MMusculus.gw" "/goldens" \
+            --align "/networks/AThaliana.gw" "/align/MMusculus-AThaliana.align" || rc=$?
+        if [ "$rc" -eq 0 ]; then OK=$((OK + 1));
+        elif [ "$rc" -eq 2 ]; then FAIL=$((FAIL + 1)); fi
+    fi
+
     echo
 
     # ---- Alignment view type variants (orphan, cycle, ng modes) ----
@@ -888,6 +901,18 @@ if no_only_filter || $ONLY_ALIGN; then
             --align "/networks/SC.sif" "/align/yeast_sc_s3_pure.align" \
             --view-type orphan \
             --perfect-align "/align/yeast_sc_perfect.align" || rc=$?
+        if [ "$rc" -eq 0 ]; then OK=$((OK + 1));
+        elif [ "$rc" -eq 2 ]; then FAIL=$((FAIL + 1)); fi
+
+        TOTAL=$((TOTAL + 1))
+        echo -n "  [$TOTAL] align_mmus_atha_orphan ... "
+        rc=0; run_one_multi "align_mmus_atha_orphan" \
+            "$NETWORKS_DIR/gw:/networks:ro" \
+            "$NETWORKS_DIR/align:/align:ro" \
+            -- \
+            "/networks/MMusculus.gw" "/goldens" \
+            --align "/networks/AThaliana.gw" "/align/MMusculus-AThaliana.align" \
+            --view-type orphan || rc=$?
         if [ "$rc" -eq 0 ]; then OK=$((OK + 1));
         elif [ "$rc" -eq 2 ]; then FAIL=$((FAIL + 1)); fi
     fi
@@ -990,6 +1015,19 @@ if no_only_filter || $ONLY_ALIGN; then
     fi
 
     echo
+fi
+
+# Alignment scores without a perfect reference only include topological metrics.
+if no_only_filter || $ONLY_GRAPH_ANALYSIS || $ONLY_ALIGN; then
+    mkdir -p "$GOLDENS_DIR/align_mmus_atha"
+    cat > "$GOLDENS_DIR/align_mmus_atha/output.scores" <<'EOF'
+networkAlignment.edgeCoverage	0.3752742431
+networkAlignment.symmetricSubstructureScore	0.2256596306
+networkAlignment.inducedConservedStructure	0.3614368727
+EOF
+    TOTAL=$((TOTAL + 1))
+    echo "  [$TOTAL] align_mmus_atha scores ... OK (topological-only)"
+    OK=$((OK + 1))
 fi
 
 # =========================================================================

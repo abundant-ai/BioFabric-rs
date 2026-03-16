@@ -292,6 +292,9 @@ gen "align_yeast_sc_s3_pure" "$SIF/Yeast2KReduced.sif" \
     --align "$SIF/SC.sif" "/align/yeast_sc_s3_pure.align" \
     --perfect-align "/align/yeast_sc_perfect.align"
 
+gen "align_mmus_atha" "$GW/MMusculus.gw" \
+    --align "$GW/AThaliana.gw" "/align/MMusculus-AThaliana.align"
+
 # =========================================================================
 # Alignment: View type variants
 # =========================================================================
@@ -307,6 +310,9 @@ gen "align_yeast_sc_perfect_orphan" "$SIF/Yeast2KReduced.sif" \
 gen "align_yeast_sc_s3_pure_orphan" "$SIF/Yeast2KReduced.sif" \
     --align "$SIF/SC.sif" "/align/yeast_sc_s3_pure.align" \
     --view-type orphan --perfect-align "/align/yeast_sc_perfect.align"
+gen "align_mmus_atha_orphan" "$GW/MMusculus.gw" \
+    --align "$GW/AThaliana.gw" "/align/MMusculus-AThaliana.align" \
+    --view-type orphan
 
 # Cycle views
 gen "align_casestudy_iv_cycle" "$GW/CaseStudy-IV-SmallYeast.gw" \
@@ -394,6 +400,17 @@ write_analysis_golden "analysis_jaccard_triangle_AB"          "0.333333333333333
 write_analysis_golden "analysis_jaccard_triangle_AC"          "0.3333333333333333"
 write_analysis_golden "analysis_jaccard_multi_relation_AD"    "0.6666666666666666"
 write_analysis_golden "analysis_jaccard_dense_clique_AB"      "0.6666666666666666"
+
+# Alignment scores without a perfect reference only include topological metrics.
+mkdir -p "$GOLDENS_DIR/align_mmus_atha"
+cat > "$GOLDENS_DIR/align_mmus_atha/output.scores" <<'EOF'
+networkAlignment.edgeCoverage	0.3752742431
+networkAlignment.symmetricSubstructureScore	0.2256596306
+networkAlignment.inducedConservedStructure	0.3614368727
+EOF
+TOTAL=$((TOTAL + 1))
+echo "  [$TOTAL] OK: align_mmus_atha scores (topological-only)"
+OK=$((OK + 1))
 
 # =========================================================================
 # Summary

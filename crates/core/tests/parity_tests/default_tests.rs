@@ -2,7 +2,7 @@
 //
 //  Default layout + shadows ON (baseline)
 //
-//  11 tests × 3 formats = 33 test functions
+//  12 tests × 3 formats = 36 test functions
 //
 // ===========================================================================
 
@@ -22,6 +22,7 @@ parity_test! { name: sif_linear_chain,               input: "linear_chain.sif", 
 
 parity_test! { name: gw_triangle,     input: "triangle.gw",          golden: "triangle_gw_default" }
 parity_test! { name: gw_directed_tri, input: "directed_triangle.gw", golden: "directed_triangle_gw_default" }
+parity_test! { name: gw_mmusculus,    input: "MMusculus.gw",         golden: "MMusculus_gw_default" }
 
 // ===========================================================================
 //

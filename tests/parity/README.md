@@ -44,10 +44,10 @@ output format (NOA, EDA, BIF)) so progress can be tracked incrementally.
 
 | Test file | Tests | Coverage |
 |-----------|-------|----------|
-| `parity_tests.rs` | 266 | Layout algorithms, shadow links, link grouping, XML round-trip, display options, alignment views |
-| `analysis_tests.rs` | 65 | Graph analysis (cycles, components, degree, Jaccard), alignment scoring |
+| `parity_tests.rs` | 275 | Layout algorithms, shadow links, link grouping, XML round-trip, display options, alignment views |
+| `analysis_tests.rs` | 68 | Graph analysis (cycles, components, degree, Jaccard), alignment scoring |
 | `cli_tests.rs` | 54 | End-to-end CLI subcommand behavior |
-| **Total** | **385** | |
+| **Total** | **397** | |
 
 ## Test input files
 
@@ -73,16 +73,18 @@ output format (NOA, EDA, BIF)) so progress can be tracked incrementally.
 | `Yeast2KReduced.sif` | ~2.4K | ~16K | Realistic PPI (DesaiEtAl-2019) |
 | `SC.sif` | ~6.6K | ~77K | Realistic PPI (DesaiEtAl-2019) |
 
-### GW networks (4 files)
+### GW networks (6 files)
 
 | File | Nodes | Edges | Purpose |
 |------|-------|-------|---------|
 | `triangle.gw` | 3 | 3 | GW format, undirected |
 | `directed_triangle.gw` | 3 | 3 | Directed GW with named relations |
+| `MMusculus.gw` | ~4.4K | large | Real mouse PPI; default-layout regression and cross-species alignment source |
+| `AThaliana.gw` | ~5.9K | large | Cross-species alignment target |
 | `CaseStudy-IV-SmallYeast.gw` | 1004 | ~8.3K | Alignment source (DesaiEtAl-2019) |
 | `CaseStudy-IV-LargeYeast.gw` | 1004 | ~10K | Alignment target (DesaiEtAl-2019) |
 
-### Alignment files (5 files)
+### Alignment files (6 files)
 
 | File | Mappings | Description |
 |------|----------|-------------|
@@ -91,6 +93,7 @@ output format (NOA, EDA, BIF)) so progress can be tracked incrementally.
 | `casestudy_iv.align` | 1004 | Case Study IV: SmallYeast ↔ LargeYeast |
 | `yeast_sc_perfect.align` | 2379 | Known ground-truth alignment |
 | `yeast_sc_s3_pure.align` | 2379 | Pure structural objective |
+| `MMusculus-AThaliana.align` | 4370 | Cross-species alignment without a perfect reference |
 
 ### BIF files for round-trip testing (5 files)
 
@@ -156,3 +159,4 @@ Realistic alignment test data from:
 
 - **Case Study IV**: SmallYeast <-> LargeYeast (1004 nodes, GW format)
 - **Case Studies I-III**: Yeast2KReduced <-> SC (2379/6600 nodes, SIF format)
+- **Cross-species regression**: MMusculus <-> AThaliana (4370 mappings, no perfect reference)

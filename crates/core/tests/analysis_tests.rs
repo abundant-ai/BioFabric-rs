@@ -130,6 +130,10 @@ fn alignment_config_for_golden(golden_dir: &str) -> Option<(&'static str, &'stat
         return Some(("CaseStudy-IV-SmallYeast.gw", "CaseStudy-IV-LargeYeast.gw", align, perfect));
     }
 
+    if golden_dir == "align_mmus_atha" {
+        return Some(("MMusculus.gw", "AThaliana.gw", "MMusculus-AThaliana.align", None));
+    }
+
     // Yeast SC configs
     if golden_dir.starts_with("align_yeast_sc_") {
         let suffix = &golden_dir["align_yeast_sc_".len()..];
@@ -1026,6 +1030,23 @@ fn align_score_yeast_sc_s3_pure_lgs() {
 #[test]
 fn align_score_yeast_sc_s3_pure_js() {
     run_alignment_score_test("align_yeast_sc_s3_pure", "Jaccard Similarity", 0.0);
+}
+
+// --- mmus_atha: topological-only metrics without a perfect reference ---
+
+#[test]
+fn align_score_mmus_atha_ec() {
+    run_alignment_score_test("align_mmus_atha", "Edge Coverage", 0.0);
+}
+
+#[test]
+fn align_score_mmus_atha_s3() {
+    run_alignment_score_test("align_mmus_atha", "Symmetric Substructure Score", 0.0);
+}
+
+#[test]
+fn align_score_mmus_atha_ics() {
+    run_alignment_score_test("align_mmus_atha", "Induced Conserved Structure", 0.0);
 }
 
 // ---------------------------------------------------------------------------
